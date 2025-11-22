@@ -1,0 +1,55 @@
+﻿// See https://aka.ms/new-console-template for more information
+
+using CrossMath.Core.Codec;
+using CrossMath.Core.Expressions.Core;
+using CrossMath.Core.Expressions.Layout;
+using CrossMath.Core.ExpressionSolvers;
+using CrossMath.Core.Models;
+
+Console.WriteLine("Hello, World!");
+
+var layout_str = "1111101000010111111011010101101111110100001011111";
+var (height, width)  =  (7, 7);
+var boardLayout = new BoardLayout(layout_str, width: width, height: height);
+boardLayout.PrettyPrint('*');
+
+// var exprLayouts = ExpressionLayoutBuilder.ExtractLayouts(boardLayout, [5]);
+// foreach (var exprLayout in exprLayouts)
+// {
+//     Console.WriteLine(exprLayout);
+// }
+
+var board = BoardDataCodec.Decode(layout_str, height, height);
+board.PrettyPrint();
+
+// var level = "9b00310efb00fa0ffcfcfbfb00fc00fa0000fbfafafa19fb17fa0000fb14fa3cfcfafb00fc0dfa0000fafa00fd09fa481611011b011a2d302811040208";
+// var layout = "001010111110010101000100111110001001010100011111101111110100000100111110001001000000010011111000100";
+
+var level = "7500fd01fa00fbfb000c03fafbfa00fc02fa12fa000f0f05140e";
+var layout = "11111100011010110101111110010000100";
+board = BoardDataCodec.Decode(level, layout);
+board.PrettyPrint();
+
+var solver = new Expression5Solver();
+var ctx = new ExpressionSolveContext()
+{
+    NumPool = new NumberPool(1, 20),
+    OpPool = new OperatorPool()
+};
+
+var exprLayouts = ExpressionLayoutBuilder.ExtractLayouts(board.Layout, [5, 7]);
+foreach (var exprLayout in exprLayouts)
+{
+    Console.WriteLine(exprLayout);
+    var expr = exprLayout.ToExpression(board);
+    Console.WriteLine($"{expr} number: {expr.EmptyNumberCount()} operator: {expr.EmptyOperatorCount()}");
+    var solutions = solver.Solve(expr, ctx);
+    foreach (var solution in solutions)
+    {
+        Console.WriteLine(solution);
+    }
+}
+
+
+
+// Console.WriteLine(3.0 / 4.0 * 4.0 == 3.0);
