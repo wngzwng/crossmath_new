@@ -136,9 +136,10 @@ public sealed class BoardData
             .Select(int.Parse)
             .ToList();
 
-    public List<string> GetFilledOperators() =>
+    public List<OpType> GetFilledOperators() =>
         FilledValues.Values
             .Where(SymbolManager.IsOperatorToken)
+            .Select((string opSymbol) => SymbolManager.TryGetOpType(opSymbol, out var op) ? op : OpType.Invalid)
             .ToList();
 
     public List<int> GetAnswerNumbers() =>
@@ -147,9 +148,10 @@ public sealed class BoardData
             .Select(int.Parse)
             .ToList();
 
-    public List<string> GetAnswerOperators() =>
+    public List<OpType> GetAnswerOperators() =>
         PossibleAnswers
             .Where(SymbolManager.IsOperatorToken)
+            .Select((string opSymbol) => SymbolManager.TryGetOpType(opSymbol, out var op) ? op : OpType.Invalid)
             .ToList();
 
     public List<int> GetAllNumbers()
@@ -159,7 +161,7 @@ public sealed class BoardData
         return list;
     }
 
-    public List<string> GetAllOperators()
+    public List<OpType> GetAllOperators()
     {
         var list = GetFilledOperators();
         list.AddRange(GetAnswerOperators());

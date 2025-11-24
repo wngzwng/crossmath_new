@@ -2,8 +2,7 @@ namespace CrossMath.Core.ExpressionSolvers;
 
 public class NumberPool
 {
-    public int Min;
-    public int Max;
+    
     
     public IReadOnlyList<int> NumList { get; private set; }
 
