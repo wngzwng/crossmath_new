@@ -33,14 +33,14 @@ public partial class Expression5Solver : IExpressionSolver
             Debug.Assert(withOperator.Op.HasValue);
             var op = withOperator.Op!.Value;
 
-            var availableNumbers = context.NumPool.GetAllNumbers();
+            var availableNumbers = context.NumPool.UniqueNumbers;
 
             foreach (var (a, b, c) in FindValidNumberTriples(availableNumbers, op,
                        knownA: template.A, knownB: template.B, knownC: template.C))
             {
                 var solved = CreateSolvedExpression(a, b, c, op);
 
-                bool isValid = context.Validator == null || context.Validator.Validate(template, solved);
+                bool isValid = context.Validator == null || context.Validator.Validate(template, solved, context);
                 if (isValid)
                     yield return solved;
             }
@@ -64,7 +64,7 @@ public partial class Expression5Solver : IExpressionSolver
         if (knownOperandCount < 2)
         {
             // No pruning possible – enumerate all allowed operators
-            foreach (var op in context.OpPool.AllowOperators)
+            foreach (var op in context.OpPool.UniqueOperators)
                 yield return template.WithOperator(op);
         }
         else
@@ -85,7 +85,7 @@ public partial class Expression5Solver : IExpressionSolver
     private static IEnumerable<OpType> InferPossibleOperators(Expression5 exp, ExpressionSolveContext context)
     {
         int? a = exp.A, b = exp.B, c = exp.C;
-        foreach (var op in context.OpPool.AllowOperators)
+        foreach (var op in context.OpPool.UniqueOperators)
         {
             // All three known → strict validation
             if (a.HasValue && b.HasValue && c.HasValue)

@@ -4,6 +4,10 @@ using CrossMath.Core.Codec;
 using CrossMath.Core.Expressions.Core;
 using CrossMath.Core.Expressions.Layout;
 using CrossMath.Core.ExpressionSolvers;
+using CrossMath.Core.ExpressionSolvers.Expression5Solvers;
+using CrossMath.Core.ExpressionSolvers.ExpressionValidators;
+using CrossMath.Core.ExpressionSolvers.NumberPools;
+using CrossMath.Core.ExpressionSolvers.OperatorPools;
 using CrossMath.Core.Models;
 
 Console.WriteLine("Hello, World!");
@@ -33,8 +37,9 @@ board.PrettyPrint();
 var solver = new Expression5Solver();
 var ctx = new ExpressionSolveContext()
 {
-    NumPool = new NumberPool(1, 20),
-    OpPool = new OperatorPool()
+    NumPool = NumberPoolFactory.Create(board.GetAnswerNumbers()),
+    OpPool = OperatorPoolFactory.ASMD,
+    Validator = new ExpressionValidator(ValidationMode.FullDiscreteConsume)
 };
 
 var exprLayouts = ExpressionLayoutBuilder.ExtractLayouts(board.Layout, [5, 7]);

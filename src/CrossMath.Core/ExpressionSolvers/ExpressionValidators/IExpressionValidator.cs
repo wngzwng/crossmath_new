@@ -4,5 +4,5 @@ namespace CrossMath.Core.ExpressionSolvers.ExpressionValidators;
 
 public interface IExpressionValidator
 {
-    bool Validate(IExpression original, IExpression solvedExp);
+    bool Validate(IExpression original, IExpression solvedExp, ExpressionSolveContext context);
 }
