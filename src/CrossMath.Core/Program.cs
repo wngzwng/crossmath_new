@@ -88,9 +88,12 @@ var solvedCtx = new ExpressionSolveContext()
     Validator = new ExpressionValidator(ValidationMode.FullPoolCheck)
 };
 //
-var fillter = new LayoutFiller(provider);
-fillter.Setup(solvedCtx);
-fillter.SetSolutionSampleLimit(100);
+var filler = new LayoutFiller(provider)
+    .Setup(solvedCtx)
+    .WithSolutionSampleLimit(20)
+    .WithFirstFillMode(FirstFillSelectMode.First);
+
+// fillter.SetSolutionSampleLimit(100);
 // if (fillter.TryFill(boardLayout, 100, out var board, out var successIndex))
 // {
 //     board!.PrettyPrint();
@@ -111,7 +114,7 @@ if (layout != null)
 {
     layout.Value.LogicPrettyPrint();
     Console.WriteLine(layout.Value);
-    if (fillter.TryFill(layout.Value, 100, out var board, out var successIndex))
+    if (filler.TryFill(layout.Value, 100, [5, 7], out var board, out var successIndex))
     {
         board!.PrettyPrint();
         Console.WriteLine($"success: {successIndex}");

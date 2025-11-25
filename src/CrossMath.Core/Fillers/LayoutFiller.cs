@@ -12,208 +12,167 @@ namespace CrossMath.Core.Fillers;
 /// </summary>
 public class LayoutFiller
 {
-    // ------------------------------------------------------------
-    // 构造 / 基础配置
-    // ------------------------------------------------------------
+    private const int DefaultSolutionSampleLimit = 10;
+    private const int DefaultTryCount = 100;
 
-    private static readonly List<int> s_defaultExpressionLengths = new() { 5, 7 };
     private readonly IExpressionSolverProvider _solverProvider;
 
-    private ExpressionSolveContext ctx { get; set; }
-    private int tryCount = 100;
-    private int solutionSampleLimit = 10;
+    private ExpressionSolveContext _ctx = null!;
+    private int _solutionSampleLimit = DefaultSolutionSampleLimit;
+    private FirstFillSelectMode _firstFillMode = FirstFillSelectMode.First;
 
-    private FirstFillSelectMode firstFillMode = FirstFillSelectMode.First;
-    // 图结构 & 映射
-    private Dictionary<string, HashSet<string>> exprIntersectionGraph = new();
-    private Dictionary<string, ExpressionLayout> exprMap = new();
-    private string startExpressionID = null;
+    // 图结构
+    private Dictionary<string, ExpressionLayout> _exprMap = null!;
+    private Dictionary<string, HashSet<string>> _intersectionGraph = null!;
+    private string _startExpressionId = null!;
 
     public LayoutFiller(IExpressionSolverProvider provider)
     {
-        _solverProvider = provider;
+        _solverProvider = provider ?? throw new ArgumentNullException(nameof(provider));
     }
 
-    /// <summary>设置求解上下文</summary>
-    public void Setup(ExpressionSolveContext ctx)
+    public LayoutFiller Setup(ExpressionSolveContext ctx)
     {
-        this.ctx = ctx;
+        _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
+        return this;
     }
-    
-    public void SetSolutionSampleLimit(int limit)
+
+    public LayoutFiller WithSolutionSampleLimit(int limit)
     {
-        solutionSampleLimit = Math.Max(1, limit);
+        _solutionSampleLimit = Math.Max(1, limit);
+        return this;
     }
 
-    public void SetFirstFillSelectMode(FirstFillSelectMode mode)
+    public LayoutFiller WithFirstFillMode(FirstFillSelectMode mode)
     {
-        firstFillMode = mode;
+        _firstFillMode = mode;
+        return this;
     }
 
-
-    // ------------------------------------------------------------
-    // 对外主流程：多次尝试填盘
-    // ------------------------------------------------------------
+    // ==================== 主入口 ====================
 
     public bool TryFill(
         BoardLayout layout,
-        int tryCount,
-        out BoardData? boardData,
-        out int? successIndex) => TryFill(layout, tryCount, null, out boardData, out successIndex);
-    public bool TryFill(
-        BoardLayout layout,
-        int tryCount,
-        List<int>? supportExpressionLengths,
-        out BoardData? boardData,
-        out int? successIndex)
+        int maxAttempts,
+        List<int>? allowedLengths,
+        out BoardData? resultBoard,
+        out int? successAttempt)
     {
-        supportExpressionLengths ??= s_defaultExpressionLengths;
+        allowedLengths ??= new() { 5, 7 };
 
-        boardData = null;
-        successIndex = null;
-
-        Build(layout, supportExpressionLengths);
-
-        var originCount = tryCount;
-
-        while (tryCount-- > 0)
+        if (!BuildGraph(layout, allowedLengths))
         {
-            var emptyBoard = BoardDataCodec.Decode(layout);
+            resultBoard = null;
+            successAttempt = null;
+            return false;
+        }
 
-            if (TryFillOnce(emptyBoard))
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            var board = BoardDataCodec.Decode(layout);
+
+            if (TryFillOnce(board))
             {
-                boardData = emptyBoard;
-                successIndex = originCount - tryCount;
+                resultBoard = board;
+                successAttempt = attempt;
                 return true;
             }
         }
 
+        resultBoard = null;
+        successAttempt = null;
         return false;
     }
 
-    // ------------------------------------------------------------
-    // 单次填盘流程（核心 BFS 填充）
-    // ------------------------------------------------------------
+    // ==================== 单次填充（核心） ====================
 
-    public bool TryFillOnce(BoardData boardData)
+    private bool TryFillOnce(BoardData board)
     {
-        return BreadthFirstTraversal<string>(
-            startExpressionID,
-            id => exprIntersectionGraph.TryGetValue(id, out var neighbors)
-                    ? neighbors
-                    : Enumerable.Empty<string>(),
-
-            expressionId =>
+        return BreadthFirstFill(
+            start: _startExpressionId,
+            getNeighbors: id => _intersectionGraph.GetValueOrDefault(id) ?? Enumerable.Empty<string>(),
+            tryProcessNode: exprId =>
             {
-                var expression = exprMap[expressionId].ToExpression(boardData);
+                var layout = _exprMap[exprId];
+                var expression = layout.ToExpression(board);
 
-                // 已求解完成 → 继续 BFS
+                // 已满足，直接继续传播
                 if (expression.Evaluate())
                     return true;
 
-                // 求解表达式，并从前 N 个解随机选一个
+                // 采样若干解，随机选一个
                 var randomSolution = _solverProvider
-                    .Solve(expression, ctx)
-                    .Take(solutionSampleLimit)
+                    .Solve(expression, _ctx)
+                    .Take(_solutionSampleLimit)
                     .RandomElementByReservoirSampling();
-                
-                if (randomSolution is null)
-                {
-                    // 无解时终止 BFS
-                    return false;
-                }
 
-                FillBoard(exprMap[expressionId], boardData, randomSolution.GetTokens());
+                if (randomSolution == null)
+                    return false; // 无解，失败
+
+                FillExpression(layout, board, randomSolution.GetTokens());
                 return true;
             });
     }
 
-    // ------------------------------------------------------------
-    // 填盘（将求解 token 写回 BoardData）
-    // ------------------------------------------------------------
-
-    private void FillBoard(ExpressionLayout expressionLayout, BoardData boardData, List<string> tokens)
+    private static void FillExpression(ExpressionLayout layout, BoardData board, IReadOnlyList<string> tokens)
     {
-        var index = 0;
-        foreach (var pos in expressionLayout.Cells)
+        if (tokens.Count != layout.Cells.Count)
+            throw new InvalidOperationException($"Token count mismatch: expected {layout.Cells.Count}, got {tokens.Count}");
+
+        for (int i = 0; i < layout.Cells.Count; i++)
         {
-            boardData.SetValueOnly(pos, tokens[index++]);
+            board.SetValueOnly(layout.Cells[i], tokens[i]);
         }
     }
 
-    // ------------------------------------------------------------
-    // 构建 Expression Graph & 映射表
-    // ------------------------------------------------------------
+    // ==================== 图构建 ====================
 
-    private void Build(BoardLayout layout, List<int> allowExpressionLengths)
+    private bool BuildGraph(BoardLayout layout, List<int> allowedLengths)
     {
-        var expressionLayouts = ExpressionLayoutBuilder.ExtractLayouts(layout, allowExpressionLengths);
+        var layouts = ExpressionLayoutBuilder.ExtractLayouts(layout, allowedLengths);
 
-        startExpressionID = firstFillMode switch
+        if (layouts.Count == 0)
+            return false;
+
+        _startExpressionId = _firstFillMode switch
         {
-            FirstFillSelectMode.First =>  expressionLayouts[0].Id.Value,
-            FirstFillSelectMode.Random =>  expressionLayouts.RandomElementByShuffle().Id.Value,
-            _ => throw new ArgumentOutOfRangeException(nameof(firstFillMode), firstFillMode, null)
+            FirstFillSelectMode.First   => layouts[0].Id.Value,
+            FirstFillSelectMode.Random  => layouts.RandomElementByShuffle().Id.Value,
+            _ => throw new ArgumentOutOfRangeException(nameof(_firstFillMode))
         };
-      
-        exprMap = expressionLayouts.ToDictionary(x => x.Id.Value, x => x);
-        exprIntersectionGraph = ExpressionLayoutGraphUtils.BuildIntersectionGraph(expressionLayouts);
+
+        _exprMap = layouts.ToDictionary(x => x.Id.Value);
+        _intersectionGraph = ExpressionLayoutGraphUtils.BuildIntersectionGraph(layouts);
+        return true;
     }
 
-    // ------------------------------------------------------------
-    // 通用 BFS 工具方法
-    // ------------------------------------------------------------
+    // ==================== 更清晰语义的 BFS ====================
 
-    /// <summary>
-    /// 广度优先遍历（可中断）
-    /// </summary>
-    public static bool BreadthFirstTraversal<T>(
-        T root,
+    private static bool BreadthFirstFill<T>(
+        T start,
         Func<T, IEnumerable<T>> getNeighbors,
-        Func<T, bool> callback)
+        Func<T, bool> tryProcessNode)
     {
-        if (root == null)
-            throw new ArgumentNullException(nameof(root));
-        if (getNeighbors == null)
-            throw new ArgumentNullException(nameof(getNeighbors));
-        if (callback == null)
-            throw new ArgumentNullException(nameof(callback));
-
         var visited = new HashSet<T>();
         var queue = new Queue<T>();
 
-        visited.Add(root);
-        queue.Enqueue(root);
+        queue.Enqueue(start);
+        visited.Add(start);
 
         while (queue.Count > 0)
         {
             var current = queue.Dequeue();
 
-            // 回调返回 false → 中断遍历
-            if (!callback(current))
-                return false;
+            if (!tryProcessNode(current))
+                return false; // 某节点无法处理 → 整盘失败
 
-            IEnumerable<T>? neighbors;
-
-            try
-            {
-                neighbors = getNeighbors(current);
-            }
-            catch
-            {
-                continue;
-            }
-
-            if (neighbors == null)
-                continue;
-
-            foreach (var neighbor in neighbors)
+            foreach (var neighbor in getNeighbors(current))
             {
                 if (visited.Add(neighbor))
                     queue.Enqueue(neighbor);
             }
         }
 
-        return true;
+        return true; // 所有表达式都处理成功
     }
 }
