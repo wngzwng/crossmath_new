@@ -103,13 +103,13 @@ var canvas = new LayoutCanvas(20, 20);
 canvas.TryApplyPlacement(new Placement(10, 7, Direction.Horizontal, 5), out var _);
 
 canvas.ExportBoardLayout(false).LogicPrettyPrint();
-var layoutGenerator = new LayoutGenerator(new PlacementGenerator());
-var layout = layoutGenerator.Generator(canvas, [
-    (7, CrossType.Operator),
-    (5, CrossType.Number),
-    (7, CrossType.Number),
-    // (5, CrossType.Operator),
-]);
+var placementGenrator = new PlacementGenerator()
+    .WithPlaceStrategies([
+        (5, CrossType.Number),
+    ]);
+
+var layoutGenerator = new LayoutGenerator(placementGenrator);
+var layout = layoutGenerator.Generator(canvas);
 if (layout != null)
 {
     layout.Value.LogicPrettyPrint();
