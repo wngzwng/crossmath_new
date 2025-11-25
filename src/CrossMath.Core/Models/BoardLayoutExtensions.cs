@@ -38,7 +38,7 @@ public static class BoardLayoutExtensions
         int h = layout.Height;
 
         // 1) 打印列号
-        Console.Write("     ");
+        Console.Write($"{' ', 6}");
         for (int c = 0; c < w; c++)
             Console.Write($"{c,3} ");
         Console.WriteLine();
@@ -49,7 +49,7 @@ public static class BoardLayoutExtensions
         // 3) 每一行
         for (int r = 0; r < h; r++)
         {
-            Console.Write($"  {r} |");
+            Console.Write($"  {r,2} |");
 
             for (int c = 0; c < w; c++)
             {

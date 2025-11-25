@@ -92,7 +92,7 @@ public readonly struct BoardLayout : IEquatable<BoardLayout>, IEnumerable<RowCol
     public override string ToString()
     {
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine($"BoardLayout {Width}×{Height} (Valid: {ValidCellCount})");
+        sb.AppendLine($"BoardLayout h{Height}×w{Width} (Valid: {ValidCellCount})");
         for (int r = 0; r < Height; r++)
         {
             sb.AppendLine(LayoutStr.Substring(r * Width, Width));

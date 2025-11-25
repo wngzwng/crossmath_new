@@ -23,6 +23,7 @@ public class LayoutFiller
     private int tryCount = 100;
     private int solutionSampleLimit = 10;
 
+    private FirstFillSelectMode firstFillMode = FirstFillSelectMode.First;
     // 图结构 & 映射
     private Dictionary<string, HashSet<string>> exprIntersectionGraph = new();
     private Dictionary<string, ExpressionLayout> exprMap = new();
@@ -42,6 +43,11 @@ public class LayoutFiller
     public void SetSolutionSampleLimit(int limit)
     {
         solutionSampleLimit = Math.Max(1, limit);
+    }
+
+    public void SetFirstFillSelectMode(FirstFillSelectMode mode)
+    {
+        firstFillMode = mode;
     }
 
 
@@ -143,8 +149,13 @@ public class LayoutFiller
     {
         var expressionLayouts = ExpressionLayoutBuilder.ExtractLayouts(layout, allowExpressionLengths);
 
-        // startExpressionID = expressionLayouts[0].Id.Value;
-        startExpressionID = expressionLayouts.RandomElementByShuffle().Id.Value;
+        startExpressionID = firstFillMode switch
+        {
+            FirstFillSelectMode.First =>  expressionLayouts[0].Id.Value,
+            FirstFillSelectMode.Random =>  expressionLayouts.RandomElementByShuffle().Id.Value,
+            _ => throw new ArgumentOutOfRangeException(nameof(firstFillMode), firstFillMode, null)
+        };
+      
         exprMap = expressionLayouts.ToDictionary(x => x.Id.Value, x => x);
         exprIntersectionGraph = ExpressionLayoutGraphUtils.BuildIntersectionGraph(expressionLayouts);
     }

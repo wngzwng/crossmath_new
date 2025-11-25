@@ -8,44 +8,38 @@ namespace CrossMath.Core.Generators;
 public class LayoutGenerator
 {
     private PlacementGenerator placementGenerators;
-    private int placementLength;
-    private CrossType crossType;
+    private List<(int, CrossType)> placeStrategies;
     
     public LayoutGenerator(PlacementGenerator placementGenerator)
     {
         this.placementGenerators = placementGenerator;
     }
 
-    public BoardLayout? Generator(ICanvas canvas, int placementLength, CrossType crossType)
+    public BoardLayout? Generator(ICanvas canvas, IEnumerable<(int, CrossType)> placeStrategies)
     {
-        this.crossType = crossType;
-        this.placementLength = placementLength;
+        this.placeStrategies = placeStrategies.ToList();
         return GeneratorCore(canvas, 0);
     }
     public BoardLayout? GeneratorCore(ICanvas canvas, int depth = 0)
     {
         var boundingBoxSize = canvas.GetBoundingBoxSize();
-        // if (depth > 4)  
-        if (boundingBoxSize.Width >= 9 && boundingBoxSize.Height >= 9)
+        // if (depth > 10)  
+        if (boundingBoxSize.Width >= 10 && boundingBoxSize.Height >= 10)
             return canvas.ExportBoardLayout();
 
-        foreach (var placement in GeneratorPlaces(canvas, [
-                     (7, CrossType.Operator), 
-                     (7, CrossType.Number), 
-                     (5, CrossType.Operator), 
-                     (5, CrossType.Number)]))
+        foreach (var placement in GeneratorPlaces(canvas, placeStrategies))
         {
             var backup = canvas.Clone();
 
-            canvas.TryApplyPlacement(placement, out _);
+            backup.TryApplyPlacement(placement, out _);
             
-            canvas.ExportBoardLayout().PrettyPrint();
+            backup.ExportBoardLayout().PrettyPrint();
             
-            var result = GeneratorCore(canvas, depth + 1);
+            var result = GeneratorCore(backup, depth + 1);
             if (result != null)
                 return result;
         }
-        
+
         return canvas.ExportBoardLayout();
     }
 

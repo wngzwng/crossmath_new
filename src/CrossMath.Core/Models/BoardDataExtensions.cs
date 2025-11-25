@@ -39,8 +39,8 @@ public static class BoardDataExtensions
         int w = board.Layout.Width;
         int h = board.Layout.Height;
 
-        sb.AppendLine($"Board ({w}×{h})");
-        sb.Append("     ");
+        sb.AppendLine($"Board (h({h})×w({w}))");
+        sb.Append($"{' ', 6}");
         for (int c = 0; c < w; c++)
             sb.Append($"{c,3} ");
         sb.AppendLine();

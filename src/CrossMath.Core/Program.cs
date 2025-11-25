@@ -83,8 +83,8 @@ Console.WriteLine("Hello, World!");
 var provider = ExpressionSolverProvider.CreateDefault();
 var solvedCtx = new ExpressionSolveContext()
 {
-    NumPool = NumberPoolFactory.Create(1, 20),
-    OpPool = OperatorPoolFactory.MDAS,
+    NumPool = NumberPoolFactory.Create(1, 80),
+    OpPool = OperatorPoolFactory.AS,
     Validator = new ExpressionValidator(ValidationMode.FullPoolCheck)
 };
 //
@@ -96,17 +96,28 @@ fillter.SetSolutionSampleLimit(100);
 //     board!.PrettyPrint();
 // }
 
-var canvas = new LayoutCanvas(11, 11);
-canvas.TryApplyPlacement(new Placement(1, 0, Direction.Horizontal, 5), out var _);
+var canvas = new LayoutCanvas(20, 20);
+canvas.TryApplyPlacement(new Placement(10, 7, Direction.Horizontal, 5), out var _);
 
 canvas.ExportBoardLayout(false).LogicPrettyPrint();
 var layoutGenerator = new LayoutGenerator(new PlacementGenerator());
-var layout = layoutGenerator.Generator(canvas, 7, CrossType.Operator);
+var layout = layoutGenerator.Generator(canvas, [
+    (7, CrossType.Operator),
+    (5, CrossType.Number),
+    (7, CrossType.Number),
+    // (5, CrossType.Operator),
+]);
 if (layout != null)
 {
     layout.Value.LogicPrettyPrint();
+    Console.WriteLine(layout.Value);
     if (fillter.TryFill(layout.Value, 100, out var board, out var successIndex))
     {
         board!.PrettyPrint();
+        Console.WriteLine($"success: {successIndex}");
+    }
+    else
+    {
+        Console.WriteLine("Failed to fill board");
     }
 }
