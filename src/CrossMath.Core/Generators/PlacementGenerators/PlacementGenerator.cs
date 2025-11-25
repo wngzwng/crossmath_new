@@ -53,7 +53,7 @@ public class PlacementGenerator : IPlacementGenerator
     {
         _expressionLayouts = ExpressionLayoutBuilderCore.ExtractLayouts(canvas.CanvasSize, canvas.HasValue, [5, 7]);
         filledPlacemount = _expressionLayouts
-            .Select(layout => new Placement(layout.Cells.First().Row, layout.Cells.First().Row, layout.Direction, layout.Length))
+            .Select(layout => new Placement(layout.Cells.First().Row, layout.Cells.First().Col, layout.Direction, layout.Length))
             .ToHashSet();
         posToCellTypeMap = ExpressionLayoutGraphUtils.BuildPosToCellTypeMap(_expressionLayouts);
     }
@@ -139,6 +139,7 @@ public class PlacementGenerator : IPlacementGenerator
         if (FailOverlap(canvas, p)) return false;
         if (FailBreath(canvas, p, crossType)) return false;
         if (FailCellType(canvas, p)) return false;
+        // if (FailAround(p)) return false;
         return true;
     }
     // === 3.1 越界检查 ===
@@ -174,13 +175,16 @@ public class PlacementGenerator : IPlacementGenerator
          * 2. 非交叉点
          */
         var placeDelta = p.Direction.ToRowColDelta();
-        var headPrevPos = RowCol.At(p.Row, p.Col) + (-1) * placeDelta;
+        var headPos = RowCol.At(p.Row, p.Col);
+        
+        var headPrevPos = headPos + (-1) * placeDelta;
         if  (headPrevPos.InBounds(canvas.CanvasSize) && canvas.HasValue(headPrevPos)) return true;
         
-        var tailNextPos = headPrevPos + p.Length * placeDelta;
+        // var tailNextPos = headPrevPos + p.Length * placeDelta; 
+        var tailNextPos = headPos + p.Length * placeDelta; // 起始点开始
         if  (tailNextPos.InBounds(canvas.CanvasSize) && canvas.HasValue(tailNextPos)) return true;
 
-        var headPos = RowCol.At(p.Row, p.Col);
+        // var headPos = RowCol.At(p.Row, p.Col);
         var placeSchema = ExpressionSchemaFactory.Create(p.Length);
         List<RowCol> otherBreathPos = new List<RowCol>();
         // 其他气口
@@ -239,6 +243,68 @@ public class PlacementGenerator : IPlacementGenerator
                 return true;
             }
         }
+        return false;
+    }
+
+    public bool FailAround(Placement placement)
+    {
+        /* 新的规则，这个的好好想想 （6，4）
+                0   1   2   3   4   5   6   7   8   9 
+           ---------------------------------------------
+             0 |          □   ◇   □   ◇   □   =   □     
+             1 |      □           ◇       ◇       ◇     
+             2 |  □   ◇   □   =   □       □       □     
+             3 |      □           ◇       ◇       ◇     
+             4 |  □   ◇   □   ◇   □   =   □       □     
+             5 |      □           =       =       =     
+             6 |      =           □       □       □     
+             7 |      □   ◇   □   ◇   □   =   □         
+             8 |              ◇                         
+             9 |              □   ◇   □   ◇   □   =   □ 
+             10 |              =                         
+             11 |              □   ◇   □   ◇   □   =   □ 
+           ---------------------------------------------
+           规则总结：
+           1. 算式不能过界面
+           2. 算式不能与同方向的算式有重合
+           3. 算式存在呼吸点（这个点是否稳定，还需在考虑）
+           4. 格子类型要对应 
+           
+           新的规则：
+           5. 不同方向的对比
+           此算式的周围，不能存在不同方向的首位点
+         */
+        /*
+        1. 此放置点的周围点（不是首尾）
+        2. 不同方向的的首位点
+        3. 查看命中情况
+         */
+        var headPos = RowCol.At(placement.Row, placement.Col);
+        var placeDelta =  placement.Direction.ToRowColDelta();
+
+        var perpendicularDir = placement.Direction.Perpendicular();
+        var perpendicularDelta = perpendicularDir.ToRowColDelta();
+        
+        var aroundPosSet = new HashSet<RowCol>();
+        for (var i = 0; i < placement.Length; i++)
+        {
+            var placePos = headPos + i * placeDelta;
+            aroundPosSet.Add(placePos + (-1) * perpendicularDelta); //上
+            aroundPosSet.Add(placePos + (1) * perpendicularDelta);  //下 两个点
+        }
+        
+        // 正交方向放置点的其实点
+        foreach (var layout in _expressionLayouts)
+        {
+            if (layout.Direction != perpendicularDir) continue;
+            
+            var startPos = layout.Cells.First();
+            if (aroundPosSet.Contains(startPos)) return true;
+            
+            var endPos = layout.Cells.Last();
+            if (aroundPosSet.Contains(endPos)) return true;
+        }
+        
         return false;
     }
     
