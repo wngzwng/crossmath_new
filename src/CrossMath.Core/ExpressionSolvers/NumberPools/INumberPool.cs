@@ -1,3 +1,5 @@
+using CrossMath.Core.Types;
+
 namespace CrossMath.Core.ExpressionSolvers.NumberPools;
 
 /// <summary>
@@ -17,20 +19,22 @@ public interface INumberPool
     IEnumerable<int> AllNumbers { get; }
 
     /// <summary>
-    /// 是否包含指定数字（不关心次数）
+    /// 排序方式：升序 / 降序 / 乱序
+    /// </summary>
+    NumberOrder Order { get; set; }
+
+    /// <summary>
+    /// 是否包含指定数字
     /// </summary>
     bool Contains(int number);
 
     /// <summary>
-    /// 获取某个数字在池子中可用的次数（权重）
-    /// 返回 int.MaxValue 表示“无限可用”
+    /// 获取某个数字可使用的次数（权重）
     /// </summary>
     int GetCount(int number);
 
     /// <summary>
-    /// 是否为无限池（每个数字可无限次使用）
-    /// 强烈建议所有实现类显式实现此属性，避免算法误判
+    /// 是否为无限池
     /// </summary>
     bool IsInfinite { get; }
-    
 }

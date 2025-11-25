@@ -83,15 +83,15 @@ Console.WriteLine("Hello, World!");
 var provider = ExpressionSolverProvider.CreateDefault();
 var solvedCtx = new ExpressionSolveContext()
 {
-    NumPool = NumberPoolFactory.Create(1, 80),
-    OpPool = OperatorPoolFactory.AS,
+    NumPool = NumberPoolFactory.Create(1, 20, NumberOrder.Shuffled),
+    OpPool = OperatorPoolFactory.MDAS,
     Validator = new ExpressionValidator(ValidationMode.FullPoolCheck)
 };
 //
 var filler = new LayoutFiller(provider)
     .Setup(solvedCtx)
     .WithSolutionSampleLimit(20)
-    .WithFirstFillMode(FirstFillSelectMode.First);
+    .WithFirstFillMode(FirstFillSelectMode.Random);
 
 // fillter.SetSolutionSampleLimit(100);
 // if (fillter.TryFill(boardLayout, 100, out var board, out var successIndex))

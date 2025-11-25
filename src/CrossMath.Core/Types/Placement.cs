@@ -1,10 +1,10 @@
 namespace CrossMath.Core.Types;
 
-// 放置点
-public readonly record struct Placement  
-(  
-    int Row,   
-    int Col,   
-    Direction Direction,   
-    int Length  
-);
+
+public readonly record struct Placement(int Row, int Col, Direction Direction, int Length)
+{
+
+
+    public override string ToString() =>
+        $"{(Direction == Direction.Horizontal ? 'H' : 'V')}{Length} @ ({Row},{Col})";
+}
