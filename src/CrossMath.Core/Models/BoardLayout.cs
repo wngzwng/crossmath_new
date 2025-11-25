@@ -17,6 +17,10 @@ public readonly struct BoardLayout : IEquatable<BoardLayout>, IEnumerable<RowCol
     public string this[int row, int col] => LayoutStr[row * Width + col].ToString();
     public string this[RowCol pos] => LayoutStr[pos.Row * Width + pos.Col].ToString();
 
+    public BoardLayout(string layoutStr, Size size) : this(layoutStr, size.Width, size.Height)
+    {
+    }
+
     public BoardLayout(string layout, int width, int height)
     {
         if (layout is null) throw new ArgumentNullException(nameof(layout));

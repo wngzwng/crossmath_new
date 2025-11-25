@@ -13,6 +13,7 @@ namespace CrossMath.Core.ExpressionSolvers.Expression5Solvers;
 /// </summary>
 public partial class Expression5Solver : IExpressionSolver
 {
+    public int SupportedLength => 5;
     public IEnumerable<IExpression> Solve(IExpression expression, ExpressionSolveContext context)
     {
         var exp5 = AsExpression5(expression);

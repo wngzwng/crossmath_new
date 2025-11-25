@@ -12,6 +12,10 @@ public static class OperatorPoolFactory
     /// </summary>
     public static IOperatorPool ASMD   => Infinite(OpType.Add, OpType.Sub, OpType.Mul, OpType.Div);
     /// <summary>
+    /// 乘除加减
+    /// </summary>
+    public static IOperatorPool MDAS   => Infinite( OpType.Mul, OpType.Div, OpType.Add, OpType.Sub);
+    /// <summary>
     /// 加减乘
     /// </summary>
     public static IOperatorPool ASM    => Infinite(OpType.Add, OpType.Sub, OpType.Mul);

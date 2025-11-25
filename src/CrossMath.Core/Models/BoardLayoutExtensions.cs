@@ -1,3 +1,6 @@
+using CrossMath.Core.Expressions.Layout;
+using CrossMath.Core.Types;
+
 namespace CrossMath.Core.Models;
 
 public static class BoardLayoutExtensions
@@ -18,9 +21,19 @@ public static class BoardLayoutExtensions
     public static void Print(this BoardLayout layout)
         => Console.WriteLine(layout);
     
-    // 美观打印（表格格式）
-    public static void PrettyPrint(this BoardLayout layout, char validChar = '@')
+    // <summary>
+    /// 默认逻辑：cell == "1" ? validChar : ' '
+    /// </summary>
+    public static char DefaultCellChar(int row, int col, string cellValue, char validChar)
+        => cellValue == "1" ? validChar : ' ';
+    
+    public static void PrettyPrint(
+        this BoardLayout layout,
+        char validChar = '@',
+        Func<int, int, string, char>? convert = null)
     {
+        convert ??= ((r, c, v) => DefaultCellChar(r, c, v, validChar));
+        
         int w = layout.Width;
         int h = layout.Height;
 
@@ -40,7 +53,9 @@ public static class BoardLayoutExtensions
 
             for (int c = 0; c < w; c++)
             {
-                char ch = layout[r, c] == "1" ? validChar : ' ';
+                string v = layout[r, c];
+                char ch = convert(r, c, v);   // 提供 row & col
+                // char ch = layout[r, c] == "1" ? validChar : ' ';
                 Console.Write($"  {ch} ");
             }
 
@@ -50,4 +65,30 @@ public static class BoardLayoutExtensions
         // 4) 底部横线
         Console.WriteLine(new string('-', 5 + w * 4));
     }
+
+    public static void LogicPrettyPrint(this BoardLayout layout, char numberChar = '□', char operatorChar = '◇')
+    {
+        var explayouts = ExpressionLayoutBuilder.ExtractLayouts(layout, [5, 7]);
+        var posToCellType = ExpressionLayoutGraphUtils.BuildPosToCellTypeMap(explayouts);
+        
+        layout.PrettyPrint(convert: (r, c, val) =>
+        {
+            if (val != "1") return ' '; //空白部分
+
+            var pos = RowCol.At(r, c);
+            if (posToCellType.ContainsKey(pos))
+            {
+                return posToCellType[pos] switch
+                {
+                    CellType.Number => numberChar,
+                    CellType.Operator => operatorChar,
+                    CellType.Equal => '=',
+                    _ => 'x'
+                };
+            }
+            return 'x';
+        });
+    }
+    
+    
 }

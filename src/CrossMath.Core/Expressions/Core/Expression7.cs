@@ -1,5 +1,6 @@
 using CrossMath.Core.Types;
 using CrossMath.Core.Models;
+using CrossMath.Core.Utils;
 
 namespace CrossMath.Core.Expressions.Core;
 
@@ -82,32 +83,35 @@ public class Expression7 : BaseExpression
     // ===================================================================
     public override bool Evaluate()
     {
-        if (!IsFullyFilled) return false;
+        if (!IsFullyFilled)
+            return false;
 
-        int a = A!.Value;
-        int b = B!.Value;
-        int c = C!.Value;
+        // 1. 构建 nums 数组（double）
+        var nums = new double[]
+        {
+            A!.Value,
+            B!.Value,
+            C!.Value
+        };
 
-        // (A Op1 B)
-        int left = Apply(Op1!.Value, a, b);
-        if (left == int.MinValue) return false;
+        // 2. 构建 ops 数组
+        var ops = new OpType[]
+        {
+            Op1!.Value,
+            Op2!.Value
+        };
 
-        // (left Op2 C)
-        int result = Apply(Op2!.Value, left, c);
-        if (result == int.MinValue) return false;
+        // 3. 转换为 RPN（逆波兰表达式）
+        var rpn = ExpressionEvalUtils.ToRpn(nums, ops);
 
-        return result == T;
+        // 4. 求值
+        if (!ExpressionEvalUtils.TryComputeRpnDouble(rpn, out var value))
+            return false;
+
+        // 5. 与 T 比较
+        return Math.Abs(value - T!.Value) < 1e-9;
     }
 
-    private static int Apply(OpType op, int x, int y)
-        => op switch
-        {
-            OpType.Add => x + y,
-            OpType.Sub => x - y,
-            OpType.Mul => x * y,
-            OpType.Div => (y != 0 && x % y == 0) ? x / y : int.MinValue,
-            _ => int.MinValue
-        };
 
     // ===================================================================
     // Clone

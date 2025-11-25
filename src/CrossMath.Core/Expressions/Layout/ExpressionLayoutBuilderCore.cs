@@ -18,7 +18,10 @@ public static class ExpressionLayoutBuilderCore
         IEnumerable<int> allowExpressionLengths)
     {
         var results = new List<ExpressionLayout>();
-        var lengths = allowExpressionLengths.Distinct().OrderBy(x => x).ToArray();
+        var lengths = allowExpressionLengths
+            .Distinct()
+            .OrderByDescending(x => x)
+            .ToArray();
 
         foreach (var pos in IterAllPositions(height, width))
         {
@@ -35,6 +38,7 @@ public static class ExpressionLayoutBuilderCore
                     {
                         ExpressionId id = ExpressionId.New();
                         results.Add(new ExpressionLayout(id, dir, coords));
+                        break;  
                     }
                 }
             }

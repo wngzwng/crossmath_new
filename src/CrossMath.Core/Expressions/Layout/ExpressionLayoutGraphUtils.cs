@@ -56,4 +56,18 @@ public static class ExpressionLayoutGraphUtils
         }
         return graph;
     }
+    
+    public static Dictionary<RowCol, CellType> BuildPosToCellTypeMap(IEnumerable<ExpressionLayout> exprLayouts)
+    {
+        var map = new Dictionary<RowCol, CellType>();
+
+        foreach (var exprlayout in exprLayouts)
+        {
+            foreach (var (pos, cellType) in exprlayout.CellsWithTypes())
+            {
+                map[pos] = cellType;
+            }
+        }
+        return map;
+    }
 }
