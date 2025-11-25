@@ -57,8 +57,8 @@ public class Expression7Solver: IExpressionSolver
         IEnumerable<OpType> op1Source = template.Op1.HasValue ? new[] { template.Op1!.Value } : ops;
         IEnumerable<OpType> op2Source = template.Op2.HasValue ? new[] { template.Op2!.Value } : ops;
         
-        foreach (var op1 in ops)
-        foreach (var op2 in ops)
+        foreach (var op1 in op1Source)
+        foreach (var op2 in op2Source)
         {
             yield return template.WithOperator(op1, op2);
         }

@@ -80,17 +80,17 @@ Console.WriteLine("Hello, World!");
 // var layout = "001010111110010101000100111110001001010100011111101111110100000100111110001001000000010011111000100";
 // var boardLayout = new BoardLayout(layout, width: 11, height: 9);
 //
-// var provider = ExpressionSolverProvider.CreateDefault();
-// var solvedCtx = new ExpressionSolveContext()
-// {
-//     NumPool = NumberPoolFactory.Create(1, 20),
-//     OpPool = OperatorPoolFactory.MDAS,
-//     Validator = new ExpressionValidator(ValidationMode.FullPoolCheck)
-// };
+var provider = ExpressionSolverProvider.CreateDefault();
+var solvedCtx = new ExpressionSolveContext()
+{
+    NumPool = NumberPoolFactory.Create(1, 20),
+    OpPool = OperatorPoolFactory.MDAS,
+    Validator = new ExpressionValidator(ValidationMode.FullPoolCheck)
+};
 //
-// var fillter = new LayoutFiller(provider);
-// fillter.Setup(solvedCtx);
-// fillter.SetSolutionSampleLimit(100);
+var fillter = new LayoutFiller(provider);
+fillter.Setup(solvedCtx);
+fillter.SetSolutionSampleLimit(100);
 // if (fillter.TryFill(boardLayout, 100, out var board, out var successIndex))
 // {
 //     board!.PrettyPrint();
@@ -105,4 +105,8 @@ var layout = layoutGenerator.Generator(canvas, 7, CrossType.Operator);
 if (layout != null)
 {
     layout.Value.LogicPrettyPrint();
+    if (fillter.TryFill(layout.Value, 100, out var board, out var successIndex))
+    {
+        board!.PrettyPrint();
+    }
 }
