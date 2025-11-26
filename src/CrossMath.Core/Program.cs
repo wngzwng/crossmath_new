@@ -99,28 +99,42 @@ var filler = new LayoutFiller(provider)
 //     board!.PrettyPrint();
 // }
 
-var canvas = new LayoutCanvas(20, 20);
-canvas.TryApplyPlacement(new Placement(10, 7, Direction.Horizontal, 5), out var _);
 
-canvas.ExportBoardLayout(false).LogicPrettyPrint();
-var placementGenrator = new PlacementGenerator()
-    .WithPlaceStrategies([
-        (5, CrossType.Number),
-    ]);
+// normal layoutGenrator
+// var canvas = new LayoutCanvas(20, 20);
+// canvas.TryApplyPlacement(new Placement(10, 7, Direction.Horizontal, 5), out var _);
+//
+// canvas.ExportBoardLayout(false).LogicPrettyPrint();
+// var placementGenrator = new PlacementGenerator()
+//     .WithPlaceStrategies([
+//         (5, CrossType.Number),
+//     ]);
+//
+// var layoutGenerator = new LayoutGenerator(placementGenrator);
+// var layout = layoutGenerator.Generator(canvas);
+// if (layout != null)
+// {
+//     layout.Value.LogicPrettyPrint();
+//     Console.WriteLine(layout.Value);
+//     if (filler.TryFill(layout.Value, 100, [5, 7], out var board, out var successIndex))
+//     {
+//         board!.PrettyPrint();
+//         Console.WriteLine($"success: {successIndex}");
+//     }
+//     else
+//     {
+//         Console.WriteLine("Failed to fill board");
+//     }
+// }
 
-var layoutGenerator = new LayoutGenerator(placementGenrator);
-var layout = layoutGenerator.Generator(canvas);
-if (layout != null)
+// smart layoutGenerator
+var canvas = new LayoutCanvas(11, 11);
+canvas.TryApplyPlacement(new Placement(0, 0, Direction.Horizontal, 5), out var _);
+
+var ctx = new LayoutGenContext();
+
+var layoutGenerator = new LayoutGeneratorSimple();
+foreach (var layout in layoutGenerator.Generate(canvas, ctx, 10 ))
 {
-    layout.Value.LogicPrettyPrint();
-    Console.WriteLine(layout.Value);
-    if (filler.TryFill(layout.Value, 100, [5, 7], out var board, out var successIndex))
-    {
-        board!.PrettyPrint();
-        Console.WriteLine($"success: {successIndex}");
-    }
-    else
-    {
-        Console.WriteLine("Failed to fill board");
-    }
+    layout.LogicPrettyPrint();
 }

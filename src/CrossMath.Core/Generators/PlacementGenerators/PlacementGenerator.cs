@@ -59,6 +59,14 @@ public class PlacementGenerator : IPlacementGenerator
         {
             var seq = GenerateCore(canvas, len, cross);
 
+            // var first = seq.FirstOrDefault();
+            // if (first != null)
+            // {
+            //     yield return first;
+            //     foreach (var item in seq.Skip(1))
+            //         yield return item;
+            // }
+            
             if (seq.TryUncons(out var head, out var tail))
             {
                 yield return head;
@@ -149,9 +157,9 @@ public class PlacementGenerator : IPlacementGenerator
     {
         if (FailBound(canvas, p)) return false;
         if (FailOverlap(p)) return false;
-        if (FailBreath(canvas, p, crossType)) return false;
+        // if (FailBreath(canvas, p, crossType)) return false; #目前只适用于单一的交叉类型
         if (FailCellType(p)) return false;
-        // if (FailAround(p)) return false;
+        if (FailAround(p)) return false;
 
         return true;
     }

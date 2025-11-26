@@ -22,14 +22,14 @@ public static class EnumerableExtensions
         head = e.Current;
 
         // tail = 从当前位置继续往下的迭代器
-        tail = EnumerateTail(e);
+        tail = source.Skip(1);
 
         return true;
     }
 
-    private static IEnumerable<T> EnumerateTail<T>(IEnumerator<T> e)
-    {
-        while (e.MoveNext())
-            yield return e.Current;
-    }
+    // private static IEnumerable<T> EnumerateTail<T>(IEnumerator<T> e)
+    // {
+    //     while (e.MoveNext())
+    //         yield return e.Current;
+    // }
 }

@@ -5,5 +5,5 @@ namespace CrossMath.Core.Generators.SearchPolicys;
 
 public interface ISearchPolicy
 {
-    IEnumerable<BoardLayout> Search(LayoutContext ctx, ICanvas initialCanvas);
+    IEnumerable<BoardLayout> Search(LayoutGenContext ctx, ICanvas initialCanvas);
 }

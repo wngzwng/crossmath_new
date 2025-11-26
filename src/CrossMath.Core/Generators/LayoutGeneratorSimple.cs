@@ -7,14 +7,14 @@ public class LayoutGeneratorSimple
 {
     public IEnumerable<BoardLayout> Generate(
         ICanvas initialCanvas,
-        LayoutContext context,
+        LayoutGenContext context,
         int maxResults = int.MaxValue)
     {
         ArgumentNullException.ThrowIfNull(initialCanvas);
         ArgumentNullException.ThrowIfNull(context);
 
         var count = 0;
-        foreach (var layout in context.SearchPolicy.Search(context, initialCanvas))
+        foreach (var layout in context.Go.Search(context, initialCanvas))
         {
             yield return layout;
             if (++count >= maxResults) yield break;

@@ -85,24 +85,24 @@ namespace CrossMath.Core.Generators.other
     // =============================================
     // 4. 终极版 LayoutGenerator（超级简洁）
     // =============================================
-    public class LayoutGenerator
-    {
-        public IEnumerable<BoardLayout> Generate(
-            ICanvas initialCanvas,
-            LayoutContext context,
-            int maxResults = int.MaxValue)
-        {
-            ArgumentNullException.ThrowIfNull(initialCanvas);
-            ArgumentNullException.ThrowIfNull(context);
-
-            var count = 0;
-            foreach (var layout in context.SearchPolicy.Search(context, initialCanvas))
-            {
-                yield return layout;
-                if (++count >= maxResults) yield break;
-            }
-        }
-    }
+    // public class LayoutGenerator
+    // {
+    //     public IEnumerable<BoardLayout> Generate(
+    //         ICanvas initialCanvas,
+    //         LayoutContext context,
+    //         int maxResults = int.MaxValue)
+    //     {
+    //         ArgumentNullException.ThrowIfNull(initialCanvas);
+    //         ArgumentNullException.ThrowIfNull(context);
+    //
+    //         var count = 0;
+    //         foreach (var layout in context.SearchPolicy.Search(context, initialCanvas))
+    //         {
+    //             yield return layout;
+    //             if (++count >= maxResults) yield break;
+    //         }
+    //     }
+    // }
     /*
      public interface IPlacementGenerator
        {

@@ -63,4 +63,20 @@ public static class IEnumerableExtensions
 
         return array[0];
     }
+    
+    public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
+    {
+        if (source is null) throw new ArgumentNullException(nameof(source));
+
+        var array = source.ToArray();
+        if (array.Length == 0) return default;
+
+        // Fisher-Yates 现代洗牌
+        for (int i = array.Length - 1; i > 0; i--)
+        {
+            int j = Rnd.Next(i + 1);
+            (array[i], array[j]) = (array[j], array[i]);
+        }
+        return array;
+    }
 }
