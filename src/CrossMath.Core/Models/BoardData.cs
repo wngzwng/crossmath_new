@@ -94,6 +94,8 @@ public sealed class BoardData
     
     public bool IsHole(RowCol pos)   => Holes.Contains(pos);
     
+    public bool IsInPossibleAnswer(string answer) => PossibleAnswers.Contains(answer);
+    
     public bool IsValid(RowCol pos)  => Layout.IsValid(pos);
 
     // 枚举与批量读取
@@ -118,6 +120,17 @@ public sealed class BoardData
         Holes.Remove(pos);
         HoleTypes.Remove(pos);
     }
+
+    public void AddPossibleAnswer(string answer)
+    {
+        PossibleAnswers.Add(answer);
+    }
+
+    public void RemovePossibleAnswer(string answer)
+    {
+        PossibleAnswers.Remove(answer);
+    }
+    
 
     // 7. 数据枚举（遍历相关）
     public IEnumerable<(RowCol pos, CellType type)> EnumerateHoles()

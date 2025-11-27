@@ -21,6 +21,8 @@ public class CandidateDomainManager<TSlot, TValue>
     private readonly Dictionary<ExpressionLayout, CandidateTable<TSlot, TValue>> _map
         = new();
     
+    private readonly Dictionary<string, ExpressionLayout> _idToLayout = new();
+    
     // slot -> list of layouts
     private readonly Dictionary<TSlot, HashSet<ExpressionLayout>> _slotIndex
         = new();
@@ -39,6 +41,7 @@ public class CandidateDomainManager<TSlot, TValue>
     public void Add(ExpressionLayout layout, CandidateTable<TSlot, TValue> table)
     {
         _map[layout] = table;
+        _idToLayout[layout.Id.Value] = layout;
 
         foreach (var row in table.Rows)
         {
@@ -52,9 +55,26 @@ public class CandidateDomainManager<TSlot, TValue>
         }
     }
 
+    public void Remove(ExpressionLayout layout)
+    {
+        _map.Remove(layout);
+        _idToLayout.Remove(layout.Id.Value);
+    }
+
+    public void Remove(string layoutid)
+    {
+        if (!_idToLayout.TryGetValue(layoutid, out var layout)) return;
+        Remove(layout);
+    }
+    
+    
+
     public CandidateTable<TSlot, TValue> Get(ExpressionLayout layout)
         => _map[layout];
+    
+    public CandidateTable<TSlot, TValue> Get(string layoutid) => _map[_idToLayout[layoutid]];
 
+    public ExpressionLayout GetLayout(string layoutid) => _idToLayout[layoutid];
     public bool Contains(ExpressionLayout layout)
         => _map.ContainsKey(layout);
 
@@ -132,4 +152,10 @@ public class CandidateDomainManager<TSlot, TValue>
     // =============================================================
     public IEnumerable<ExpressionLayout> Layouts => _map.Keys;
     public IEnumerable<CandidateTable<TSlot, TValue>> Tables => _map.Values;
+
+
+    public CandidateDomainManager<TSlot, TValue> Clone()
+    {
+        return new CandidateDomainManager<TSlot, TValue>();
+    }
 }

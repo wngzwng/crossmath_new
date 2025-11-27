@@ -48,4 +48,89 @@ cellDifficultyMap：Dict<RowCol, HashSet
 都没有处理
 表示失败了，这是出栈，获取新的上下文，然后更新上下文，继续重复步骤
 
+实际难度层处理：
+1. 难度1: 仅依赖表达式自身可得出唯一空哥候选数，例如 4 + ？ = 5  ？ = 1
+2. 难度2: 结合 全局候选数池 和表达式自身可得出空格候选数
+      池子： [2, 3, 4, 6]
+      表达式  ？ - ？ = 3  =》 ?6 - ?3 = 3
+3. 难度3：候选数池，以及所有表达式的候选组，交叉约束传播后，查看空格的候选项
+      存在空格唯一候选项， 该格子难度3
+      没有空哥唯一候选项目：选择最少候选项目格子
+      分别填入候选数到该格子，作为分支，该格子的难度4
+难度3和难度4 存在关联
+
+
+
 这与你想做的“difficulty pipeline”一致：
+
+
+
+```C#
+public class GobalDifficultyContext 
+{
+    public CandidateDomainManager manager {get; set;}
+    public int GobalDifficulty {get; }
+    public Board GobalBoard {get;}
+    public ExpressionSolversProvider Solver {get; }
+    public Difficulty<RowCol, int> DifficultyRecode {get;}
+    
+    public GobalDifficultyContext Clone() {}
+    public void UpdateDifficulty(int d) {};
+    public void updateManager(CandidateDomainManager manager);
+}
+
+public interface IGobalDifficultyLayer
+{
+    int Difficulty {get; }
+    bool TryEvalute(GobbalDifficultyContext ctx, out IEnumerable<GobalDifficultyContext> branchCtxs);
+}
+
+
+public class GobalDifficultyEvalutor
+{
+    private List<IGobalDifficultyLayer> _layers = new();
+    
+    public Difficulty<RowCol, int> Evalute(GobalDifficultyContext context)
+    {
+        var _stack = new Stack<GobalDifficultyContext>();
+        _stack.push(context);
+        
+        while(_stack.Count > 0)
+        {
+            var ctx = _statck.pop();
+            
+            while(true)
+            {
+                var hasFillCell = false;
+                
+                foreach(var layer in _layers)
+                {
+                    if (layer.TryEvalute(ctx, out var branchCtxs))
+                    {
+                        hasFillCell = true;
+                        break;
+                    }
+                    
+                    if (branchCtxs != null)
+                    {
+                        foreach(var branchctx in branchCtxs)
+                        {
+                            _stack.push(branchctx)
+                        }
+                    }
+                }
+                
+                if (hasFillCell) continue;
+                
+                if (ctx.GobalBoard.isComplete())
+                {
+                    return ctx.DifficultyRecode;
+                }
+                
+                break;
+            }
+            
+        }
+    }
+}
+```
