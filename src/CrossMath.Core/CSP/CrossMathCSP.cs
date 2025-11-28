@@ -14,6 +14,7 @@
         
         public CSPResult RunPropagation(CandidateDomainManager<RowCol, string> manager, List<string> candidates)
         {
+            Reset();
             BuildLayout(manager);
             InitHoleCandidate(candidates);
             
@@ -26,6 +27,15 @@
             return new CSPResult(_holeDomains, manager);
         }
 
+
+        public void Reset()
+        {
+            _posToRelatedLayouts.Clear();
+            _layoutToHoles.Clear();
+            _holeDomains.Clear();
+             _idToLayouts.Clear();
+        }
+        
         public void BuildLayout(CandidateDomainManager<RowCol, string> manager)
         {
             var layouts = manager.Layouts.ToArray();

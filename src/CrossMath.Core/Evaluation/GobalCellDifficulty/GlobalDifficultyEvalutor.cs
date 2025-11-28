@@ -1,28 +1,38 @@
+using CrossMath.Core.CandidateDomains;
+using CrossMath.Core.ExpressionSolvers.SolverProviders;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
-
+using Microsoft.Extensions.Logging;
 namespace CrossMath.Core.Evaluation;
 
     
 public sealed class GlobalDifficultyEvaluator
 {
     private readonly IReadOnlyList<IGlobalDifficultyLayer> _layers;
-
-    public GlobalDifficultyEvaluator(IEnumerable<IGlobalDifficultyLayer> layers)
+    
+    private readonly ILogger _logger;
+    public GlobalDifficultyEvaluator(
+        IEnumerable<IGlobalDifficultyLayer> layers, 
+        ILoggerFactory loggerFactory)
     {
-        // 必须从小到大排序！
         _layers = layers.OrderBy(l => l.Difficulty).ToList();
+        _logger = loggerFactory.CreateLogger<GlobalDifficultyEvaluator>();
     }
     
     public Dictionary<RowCol, int> Evaluate(GlobalDifficultyContext initialContext)
     {
+        _logger.LogInformation("开始全局难度格子难度评估");
         var search = new Stack<GlobalDifficultyContext>();
         search.Push(initialContext.Clone());
-
+        var searchCount = 0;
         while (search.TryPop(out var ctx))
         {
+            searchCount++;
             while (TryApplyDeterministicStep(ctx)) { }  // 持续确定性填数
-
+            
+            _logger.LogDebug("处理搜索节点 {SearchCount}，当前确定数: {FilledCount}", searchCount, ctx.DifficultyRecord.Keys.Count);
+            _logger.LogDebug($"以及处理的节点: \n{string.Join("\n", ctx.DifficultyRecord.OrderBy(x => x.Key).Select(x => $"{x.Key}: {x.Value}").ToList())}");
+            
             if (ctx.Board.GetKind() == BoardKind.Answer)
                 return ctx.DifficultyRecord;
 
@@ -34,6 +44,15 @@ public sealed class GlobalDifficultyEvaluator
         }
 
         throw new InvalidOperationException("无法评级");
+    }
+
+    public GlobalDifficultyContext CreateContext(BoardData board)
+    {
+        return new GlobalDifficultyContext(
+            manager: new CandidateDomainManager<RowCol, string>(),
+            board: board,
+            solver: ExpressionSolverProvider.CreateDefault()
+        );
     }
     
     private bool TryApplyDeterministicStep(GlobalDifficultyContext ctx)

@@ -1,6 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using CrossMath.Core.Codec;
+using CrossMath.Core.Evaluation;
+using CrossMath.Core.Evaluation.GobalCellDifficulty;
 using CrossMath.Core.Expressions.Core;
 using CrossMath.Core.Expressions.Layout;
 using CrossMath.Core.ExpressionSolvers;
@@ -16,6 +18,7 @@ using CrossMath.Core.Generators.Canvas;
 using CrossMath.Core.Generators.PlacementGenerators;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
+using Microsoft.Extensions.Logging;
 
 Console.WriteLine("Hello, World!");
 
@@ -126,15 +129,57 @@ var filler = new LayoutFiller(provider)
 //         Console.WriteLine("Failed to fill board");
 //     }
 // }
-
 // smart layoutGenerator
-var canvas = new LayoutCanvas(11, 11);
-canvas.TryApplyPlacement(new Placement(0, 0, Direction.Horizontal, 5), out var _);
+// var canvas = new LayoutCanvas(11, 11);
+// canvas.TryApplyPlacement(new Placement(0, 0, Direction.Horizontal, 5), out var _);
+//
+// var ctx = new LayoutGenContext();
+//
+// var layoutGenerator = new LayoutGeneratorSimple();
+// foreach (var layout in layoutGenerator.Generate(canvas, ctx, 10 ))
+// {
+//     layout.LogicPrettyPrint();
+// }
 
-var ctx = new LayoutGenContext();
+// min=1, max=1 difficulty:11111    
+var level_1 = "7701fd00fa09fdfb001ffc00fa00fafcfafb1300151afafa092d09130c1316";
+var layout_1 = "1111100100010010111111010101101010100100010010001";
 
-var layoutGenerator = new LayoutGeneratorSimple();
-foreach (var layout in layoutGenerator.Generate(canvas, ctx, 10 ))
+//min=1, max = 2  difficulty: 1222222122
+var level_2 = "7726fe00fa02fc0000fb00fa2dfcfafc00fb00fa0000fafa00fe00fa0b0b132f1c11190a23221602";
+var layout_2 = "0011111001000010111111010001111110110000011111101";
+
+// min=1, max=3 difficulty: 3332223221   3,3,3,2,2,2,3,2,2,1
+var level_3 = "7700fb00fa55fbfc0000fc00fa00fafcfa0000fb00fa78fa00fe07fa080352756e135b78364238";
+var layout_3 = "1111100100010010111111010100101111100100000011111";
+
+// min = 1, max=4  difficulty: 3344241233
+var level_4 = "7700fb00fa13fbfc05fc00fa000ffbfafa000000fa00fb00fa001201020302040407040b";
+var layout_4 = "0011111000010111111011000101100010110000001111100";
+
+var board = BoardDataCodec.Decode(level_4, layout_4);
+board.PrettyPrint();
+
+// 创建 LoggerFactory
+using var loggerFactory = LoggerFactory.Create(builder =>
 {
-    layout.LogicPrettyPrint();
+    builder.AddConsole();  // 添加控制台日志提供者
+    builder.AddDebug();   // 添加调试输出日志提供者
+    // 可以添加其他日志提供者，如文件日志等
+});
+
+// 难度评估
+var evaluator = new GlobalDifficultyEvaluator([
+        new GlobalDifficultyLayerOne(),
+        new GlobalDifficultyLayerTwo(),
+        new GlobalDifficultyLayerThree(),
+    ], loggerFactory);
+
+var result = evaluator.Evaluate(evaluator.CreateContext(board)).OrderBy(x => x.Key);
+foreach (var pair in result)
+{
+    Console.WriteLine($"{pair.Key},{pair.Value}");
 }
+var resultList = result.Select(x => x.Value).ToList();
+Console.WriteLine($"{string.Join(",", resultList)}");
+

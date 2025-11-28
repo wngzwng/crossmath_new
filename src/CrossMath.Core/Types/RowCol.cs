@@ -1,6 +1,6 @@
 namespace CrossMath.Core.Types;
 
-public readonly record struct RowCol(int Row, int Col)
+public readonly record struct RowCol(int Row, int Col):IComparable<RowCol>
 {
     public static RowCol Zero => new(0, 0);
     public static RowCol One  => new(1, 1);
@@ -30,6 +30,16 @@ public readonly record struct RowCol(int Row, int Col)
     // 解构支持（foreach 直接拆）
     public void Deconstruct(out int r, out int c) => (r, c) = (Row, Col);
 
+    // 实现IComparable接口 - 支持排序！
+    public int CompareTo(RowCol other)
+    {
+        // 先按Row排序，再按Col排序（自然顺序）
+        int rowComparison = Row.CompareTo(other.Row);
+        if (rowComparison != 0)
+            return rowComparison;
+        
+        return Col.CompareTo(other.Col);
+    }
     public override string ToString() => $"({Row},{Col})";
     public string ToString(string format) => $"({Row.ToString(format)},{Col.ToString(format)})";
 }

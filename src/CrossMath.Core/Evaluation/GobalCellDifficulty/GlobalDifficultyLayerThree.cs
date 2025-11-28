@@ -116,6 +116,7 @@ public class GlobalDifficultyLayerThree: GlobalDifficultyLayerBase
         if (!singleCandidateVariables.Any())
             return false;
 
+        ctx.UpdateDifficulty(Difficulty);
         foreach (var variable in singleCandidateVariables)
         {
             var pos = variable.Key;
@@ -149,6 +150,7 @@ public class GlobalDifficultyLayerThree: GlobalDifficultyLayerBase
         IEnumerable<string> candidateValues)
     {
         var branches = new List<GlobalDifficultyContext>();
+        
         foreach (var value in candidateValues)
         {
             var newCtx = ctx.Clone();
@@ -156,7 +158,7 @@ public class GlobalDifficultyLayerThree: GlobalDifficultyLayerBase
         
             newCtx.Board.SetValueOnly(position, value);
             newCtx.Board.RemovePossibleAnswer(value);
-            newCtx.DifficultyRecord[position] = ctx.CurrentDifficulty;
+            newCtx.DifficultyRecord[position] = newCtx.CurrentDifficulty;
 
             branches.Add(newCtx);
         }
