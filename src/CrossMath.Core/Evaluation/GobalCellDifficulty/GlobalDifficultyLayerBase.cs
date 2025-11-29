@@ -141,7 +141,7 @@ public abstract class GlobalDifficultyLayerBase : IGlobalDifficultyLayer
 
             if (solved.Count == 0) return false;
 
-            var table = BuildCandidateTable(layout, origin, solved);
+            var table = layout.BuildCandidateTable(origin, solved);
             if (table.Count == 0) return false;
 
             if (HandleCandidateTable(ctx, layout, table, out branches))
@@ -157,23 +157,5 @@ public abstract class GlobalDifficultyLayerBase : IGlobalDifficultyLayer
         }
 
         return modeProgress;
-    }
-
-    protected CandidateTable<RowCol, string> BuildCandidateTable(
-       ExpressionLayout layout, IExpression origin, List<IExpression> solved)
-    {
-        var t = new CandidateTable<RowCol, string>();
-        foreach (var s in solved) t.AddRow(ExtractCandidateRow(layout, origin, s));
-        return t;
-    }
-
-    protected CandidateRow<RowCol, string> ExtractCandidateRow(
-        ExpressionLayout layout, IExpression origin, IExpression solved)
-    {
-        var map = new Dictionary<RowCol, string>();
-        for (int i = 0; i < layout.Length; i++)
-            if (origin[i] != solved[i])
-                map[layout[i]] = solved[i];
-        return new CandidateRow<RowCol, string>(map);
     }
 }

@@ -44,6 +44,7 @@ public class GlobalDifficultyLayerThree: GlobalDifficultyLayerBase
             return true;
 
         // 执行CSP传播并处理结果
+        var cloneManager = domainManager.Clone();
         var cspResult = _csp.RunPropagation(domainManager, ctx.Board.PossibleAnswers);
 
         // 处理CSP传播后产生的单候选域
@@ -77,10 +78,10 @@ public class GlobalDifficultyLayerThree: GlobalDifficultyLayerBase
 
             if (solved.Count == 0) return false;
 
-            var table = BuildCandidateTable(layout, origin, solved);
+            var table = layout.BuildCandidateTable(origin, solved);
             if (table.Count == 0) continue;
             
-            manager.Add(layout, table);
+            manager.Add(layout.ToString(), table);
         }
         
         return true;

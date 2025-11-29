@@ -50,6 +50,10 @@ public class CandidateTable<TSlot, TValue>
     /// 获取第 index 条 Row
     /// </summary>
     public CandidateRow<TSlot, TValue> this[int index] => Rows[index];
+    
+    public IEnumerable<TSlot> Slots => Rows
+        .SelectMany(row => row.Slots)
+        .Distinct();
 
     // =============================================================
     // Domain（slot -> 候选值集合）
@@ -137,6 +141,14 @@ public class CandidateTable<TSlot, TValue>
             t.AddRow(newRow);
         }
 
+        return t;
+    }
+
+    public CandidateTable<TSlot, TValue> Clone()
+    {
+        var t = new CandidateTable<TSlot, TValue>();
+        foreach (var row in Rows)
+            t.AddRow(row.Clone());
         return t;
     }
 }

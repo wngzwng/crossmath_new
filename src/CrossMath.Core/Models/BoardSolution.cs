@@ -10,6 +10,6 @@ public class BoardSolution
     public BoardSolution(BoardData data, IReadOnlyDictionary<RowCol, string> solutionMap)
     {
         this.data = data;
-        solutionMap = solutionMap;
+        this.solutionMap = solutionMap;
     }
 }

@@ -20,7 +20,7 @@ public static class BoardDataExtensions
 
         if (filled + holes == total && answers == 0 && filled < total)
             return BoardKind.AnswerDraft;
-
+        
         if (filled == total && holes == 0 && answers == 0)
             return BoardKind.Answer;
 

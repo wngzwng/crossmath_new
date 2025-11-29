@@ -1,144 +1,130 @@
-    using CrossMath.Core.CandidateDomains;
-    using CrossMath.Core.Expressions.Layout;
-    using CrossMath.Core.Models;
-    using CrossMath.Core.Types;
+using CrossMath.Core.CandidateDomains;
+using CrossMath.Core.Types;
 
-    namespace CrossMath.Core.CSP;
+namespace CrossMath.Core.CSP;
 
-    public class CrossMathCSP
+public class CrossMathCSP
+{
+    private IReadOnlyDictionary<RowCol, IReadOnlySet<string>> _posToRelatedLayoutIds;
+    private IReadOnlyDictionary<string, IReadOnlySet<RowCol>> _layoutIdToHoles;
+    private Dictionary<RowCol, HashSet<string>> _holeDomains = new();
+
+    public CSPResult RunPropagation(CandidateDomainManager<RowCol, string> manager, List<string> candidates)
     {
-        private Dictionary<RowCol, HashSet<string>> _posToRelatedLayouts = new();
-        private Dictionary<string, HashSet<RowCol>> _layoutToHoles = new();
-        private Dictionary<RowCol, HashSet<string>> _holeDomains = new();
-        private Dictionary<string, ExpressionLayout> _idToLayouts = new();
-        
-        public CSPResult RunPropagation(CandidateDomainManager<RowCol, string> manager, List<string> candidates)
-        {
-            Reset();
-            BuildLayout(manager);
-            InitHoleCandidate(candidates);
-            
-            var holes = _holeDomains.Keys.ToList();
-            foreach (var pos in holes)
-            {
-                SpreadFromCell(pos, manager);
-            }
+        Reset();
+        Build(manager);
+        InitHoleCandidate(candidates);
 
-            return new CSPResult(_holeDomains, manager);
+        var holes = _holeDomains.Keys.ToList();
+        foreach (var pos in holes)
+        {
+            SpreadFromCell(pos, manager);
         }
 
+        return new CSPResult(_holeDomains, manager);
+    }
 
-        public void Reset()
+    public void Reset()
+    {
+        _holeDomains.Clear();
+    }
+
+    public void Build(CandidateDomainManager<RowCol, string> manager)
+    {
+        _posToRelatedLayoutIds = manager.GetSlotToTablesMap();
+        _layoutIdToHoles = manager.GetTableToSlotsMap();
+    }
+
+    public void InitHoleCandidate(List<string> candidates)
+    {
+        foreach (var pos in _posToRelatedLayoutIds.Keys)
         {
-            _posToRelatedLayouts.Clear();
-            _layoutToHoles.Clear();
-            _holeDomains.Clear();
-             _idToLayouts.Clear();
-        }
-        
-        public void BuildLayout(CandidateDomainManager<RowCol, string> manager)
-        {
-            var layouts = manager.Layouts.ToArray();
-            _posToRelatedLayouts = ExpressionLayoutGraphUtils.BuildPosToExprMap(layouts);
-
-            foreach (var layout in layouts)
-            {
-                var table = manager.Get(layout);
-                var domain = table.Domain;
-                _layoutToHoles[layout.Id.Value] = domain.Keys.ToHashSet();
-
-                _idToLayouts[layout.Id.Value] = layout;
-            }
-        }
-
-        public void InitHoleCandidate(List<string> candidates)
-        {
-            foreach (var pos in _posToRelatedLayouts.Keys)
-            {
-                _holeDomains[pos] = candidates.ToHashSet();
-            }
-        }
-        
-        private void SpreadFromCell(RowCol cell, CandidateDomainManager<RowCol, string> manager)
-        {
-            var effectLayoutIds = new HashSet<string>();
-            
-            var relatedLayoutIds = _posToRelatedLayouts[cell];
-            foreach (var relatedId in relatedLayoutIds)
-            {
-                var table = manager.Get(relatedId);
-                var domain = table.Domain;
-                
-                var holes = _layoutToHoles[relatedId];
-                foreach (var hole in holes)
-                {
-                    var holeDomain = _holeDomains[hole];
-                    var oldCount = holeDomain.Count;
-                    holeDomain.IntersectWith(domain[hole]);
-                    var updatedCount = holeDomain.Count;
-
-                    if (updatedCount != oldCount)
-                    {
-                        effectLayoutIds.Add(relatedId);
-                    }
-                }
-            }
-
-            if (effectLayoutIds.Count > 0)
-            {
-                foreach (var id in effectLayoutIds)
-                {
-                    SpreadFromLayout(id, manager);
-                }
-             
-            }
-            
-        }
-
-        private void SpreadFromLayout(string layoutId, CandidateDomainManager<RowCol, string> manager)
-        {
-            var effectHoles = new HashSet<RowCol>();
-            
-            var table = manager.Get(layoutId);
-            var domain = table.Domain;
-
-            foreach (var hole in domain.Keys)
-            {
-                var holeDomain = _holeDomains[hole];
-                var oldCount = holeDomain.Count;
-                holeDomain.IntersectWith(domain[hole]);
-                var updatedCount = holeDomain.Count;
-
-                if (updatedCount != oldCount)
-                {
-                    effectHoles.Add(hole);
-                }
-            }
-
-            if (effectHoles.Count > 0)
-            {
-                // 更新table
-                table = table.Where((candidateRow) =>
-                {
-                    
-                    var rowToValue = candidateRow.ToDictionary();
-                    foreach (var rowCol in rowToValue.Keys)
-                    {
-                        if (!effectHoles.Contains(rowCol)) continue;
-                        
-                        var holeAllowValues = _holeDomains[rowCol];
-                        if (!holeAllowValues.Contains(rowToValue[rowCol])) return false;
-                    }
-                    return true;
-                });
-                manager.Add(_idToLayouts[layoutId], table);
-
-
-                foreach (var effectHole in effectHoles)
-                {
-                    SpreadFromCell(effectHole, manager  );
-                }
-            }
-            
+            _holeDomains[pos] = new HashSet<string>(candidates);
         }
     }
+
+    private void SpreadFromCell(RowCol cell, CandidateDomainManager<RowCol, string> manager)
+    {
+        var effectLayoutIds = new HashSet<string>();
+
+        if (!_posToRelatedLayoutIds.TryGetValue(cell, out var relatedLayoutIds))
+            return;
+
+        foreach (var relatedId in relatedLayoutIds)
+        {
+            if (!_layoutIdToHoles.TryGetValue(relatedId, out var holes))
+                continue;
+
+            var table = manager.Get(relatedId);
+            if (!table.Domain.TryGetValue(cell, out var cellDomain))
+                continue;
+
+            var holeDomain = _holeDomains[cell];
+            var oldCount = holeDomain.Count;
+            holeDomain.IntersectWith(cellDomain);
+            var updatedCount = holeDomain.Count;
+
+            if (updatedCount < oldCount)
+            {
+                effectLayoutIds.Add(relatedId);
+            }
+        }
+
+        if (effectLayoutIds.Count > 0)
+        {
+            foreach (var layoutId in effectLayoutIds)
+            {
+                SpreadFromLayout(layoutId, manager);
+            }
+        }
+    }
+
+    private void SpreadFromLayout(string layoutId, CandidateDomainManager<RowCol, string> manager)
+    {
+        var table = manager.Get(layoutId);
+        var effectHoles = new HashSet<RowCol>();
+
+        // 对该layout中所有槽位的域进行交集操作
+        foreach (var hole in table.Slots)
+        {
+            if (!table.Domain.TryGetValue(hole, out var holeDomainFromTable))
+                continue;
+
+            var currentHoleDomain = _holeDomains[hole];
+            var oldCount = currentHoleDomain.Count;
+            currentHoleDomain.IntersectWith(holeDomainFromTable);
+            var updatedCount = currentHoleDomain.Count;
+
+            if (updatedCount < oldCount)
+            {
+                effectHoles.Add(hole);
+            }
+        }
+
+        // 如果有域发生变化，则对该表的候选行进行过滤
+        if (effectHoles.Count > 0)
+        {
+            var filteredTable = table.Where(candidateRow =>
+            {
+                foreach (var slot in candidateRow.Slots)
+                {
+                    if (!candidateRow.TryGetValue(slot, out var value))
+                        return false;
+
+                    if (!_holeDomains[slot].Contains(value))
+                        return false;
+                }
+                return true;
+            });
+
+            // 更新管理器中的表
+            manager.Add(layoutId, filteredTable);
+
+            // 对受影响的空位继续传播
+            foreach (var effectHole in effectHoles)
+            {
+                SpreadFromCell(effectHole, manager);
+            }
+        }
+    }
+}

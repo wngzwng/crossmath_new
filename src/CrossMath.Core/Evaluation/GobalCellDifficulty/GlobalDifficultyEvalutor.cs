@@ -24,6 +24,7 @@ public sealed class GlobalDifficultyEvaluator
         _logger.LogInformation("开始全局难度格子难度评估");
         var search = new Stack<GlobalDifficultyContext>();
         search.Push(initialContext.Clone());
+        
         var searchCount = 0;
         while (search.TryPop(out var ctx))
         {

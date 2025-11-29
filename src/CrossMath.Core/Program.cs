@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using CrossMath.Core.BoardSolvers;
 using CrossMath.Core.Codec;
 using CrossMath.Core.Evaluation;
 using CrossMath.Core.Evaluation.GobalCellDifficulty;
@@ -157,7 +158,12 @@ var layout_3 = "1111100100010010111111010100101111100100000011111";
 var level_4 = "7700fb00fa13fbfc05fc00fa000ffbfafa000000fa00fb00fa001201020302040407040b";
 var layout_4 = "0011111000010111111011000101100010110000001111100";
 
-var board = BoardDataCodec.Decode(level_4, layout_4);
+// min = 3, max = 4 difficulty: 333 444 333 4 33444444444444    3,3,3,4,4,4,3,3,3,4,3,3,4,4,4,4,4,4,4,4,4,4,4,4
+// 
+var level_5 = "bb00fd08fa000000fbfbfd000000fc00fa00fcfcfafafa000efb00fa0000fafa00fd00fa0000fbfc0000fd00fa00fafa00fc00fa00010817191810050401170d1b190102020712050414141202";
+var layout_5 = "0011111010100000010101100010111111000101010110001111101100010000001111101000000100010000001000111110010001000000111110000";
+
+var board = BoardDataCodec.Decode(level_5, layout_5);
 board.PrettyPrint();
 
 // 创建 LoggerFactory
@@ -175,7 +181,7 @@ var evaluator = new GlobalDifficultyEvaluator([
         new GlobalDifficultyLayerThree(),
     ], loggerFactory);
 
-var result = evaluator.Evaluate(evaluator.CreateContext(board)).OrderBy(x => x.Key);
+var result = evaluator.Evaluate(evaluator.CreateContext(board)).OrderBy(x => x.Key).ToList();
 foreach (var pair in result)
 {
     Console.WriteLine($"{pair.Key},{pair.Value}");
@@ -183,3 +189,15 @@ foreach (var pair in result)
 var resultList = result.Select(x => x.Value).ToList();
 Console.WriteLine($"{string.Join(",", resultList)}");
 
+var boardSolver = new BoardSolver();
+var counter = 0;
+foreach (var solution in boardSolver.Solve(board, boardSolver.CreateDefaultExpressionSolverProvider()))
+{
+    Console.WriteLine($"========{++counter}============");
+    var answers = solution.solutionMap.OrderBy(pair => pair.Key).ToList();
+    Console.WriteLine(string.Join(",", answers.Select(pair => pair.Value)));
+    // foreach (var keyValuePair in answers)
+    // {
+    //     Console.WriteLine($"{keyValuePair.Key},{keyValuePair.Value}");
+    // }
+}
