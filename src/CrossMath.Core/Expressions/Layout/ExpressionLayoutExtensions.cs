@@ -30,7 +30,7 @@ public static class ExpressionLayoutExtensions
     /// </summary>
     public static bool HasEmptySymbol(this ExpressionLayout exprLayout, BoardData board)
         => exprLayout.EmptyOperatorCount(board) > 0;
-    
+
     /// <summary>
     /// 是否所有格子都已填满（不含等号也算填满）
     /// </summary>
@@ -46,17 +46,18 @@ public static class ExpressionLayoutExtensions
             if (exprLayout.Schema.GetCellType(i) == targetType && string.IsNullOrEmpty(board[exprLayout[i]]))
                 count++;
         }
+
         return count;
     }
-    
-    
+
+
     /// <summary>
     /// 提取表达式（即使有空位也返回部分填充的表达式）
     /// </summary>
     public static IExpression ToExpression(this ExpressionLayout exprLayout, BoardData board)
     {
         var tokens = exprLayout.Cells
-            .Select(pos => board[pos])  // 空位用空字符串占位
+            .Select(pos => board[pos]) // 空位用空字符串占位
             .ToArray();
 
         return ExpressionFactory.FromTokens(tokens);

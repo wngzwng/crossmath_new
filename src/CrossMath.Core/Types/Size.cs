@@ -16,4 +16,22 @@ public readonly record struct Size(int Width, int Height)
         for (int col = 0; col < Width; col++)  
             yield return new RowCol(row, col);  
     }
+    
+    public static Size GetBoundingBoxSize(RowCol p1, RowCol p2)
+    {
+        int width  = Math.Abs(p2.Col - p1.Col) + 1;
+        int height = Math.Abs(p2.Row - p1.Row) + 1;
+        return  new Size(width, height);
+    }
+    
+    public static IEnumerable<RowCol> TraverseSection(RowCol start, RowCol end)
+    {
+        for (int r = start.Row; r <= end.Row; r++)
+        {
+            for (int c = start.Col; c <= end.Col; c++)
+            {
+                yield return new RowCol(r, c);
+            }
+        }
+    }
 }

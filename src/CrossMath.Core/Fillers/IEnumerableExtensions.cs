@@ -69,7 +69,8 @@ public static class IEnumerableExtensions
         if (source is null) throw new ArgumentNullException(nameof(source));
 
         var array = source.ToArray();
-        if (array.Length == 0) return default;
+        // if (array.Length == 0) return default; // 会有bug
+        if (array.Length == 0) return Enumerable.Empty<T>();
 
         // Fisher-Yates 现代洗牌
         for (int i = array.Length - 1; i > 0; i--)

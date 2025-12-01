@@ -1,4 +1,5 @@
 using System.Text;
+using CrossMath.Core.Expressions.Layout;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
 
@@ -48,17 +49,11 @@ public static class CanvasExtensions
         return (new RowCol(minRow, minCol), new RowCol(maxRow, maxCol));
     }
     
-    public static Size GetBoundingBoxSize(RowCol p1, RowCol p2)
-    {
-        int width  = Math.Abs(p2.Col - p1.Col) + 1;
-        int height = Math.Abs(p2.Row - p1.Row) + 1;
-        return  new Size(width, height);
-    }
     
     public static Size GetBoundingBoxSize(this ICanvas canvas)
     {
         var (minPos, maxPos) = canvas.GetMinMaxPosition();
-        return GetBoundingBoxSize(minPos, maxPos);
+        return Size.GetBoundingBoxSize(minPos, maxPos);
     }
 
 
@@ -98,7 +93,7 @@ public static class CanvasExtensions
             return new BoardLayout("", 0, 0);
         }
 
-        var size = GetBoundingBoxSize(minPos, maxPos);
+        var size = Size.GetBoundingBoxSize(minPos, maxPos);
         var sb = new StringBuilder(size.Width * size.Height);
 
         for (int r = minPos.Row; r <= maxPos.Row; r++)
@@ -112,6 +107,55 @@ public static class CanvasExtensions
 
         return new BoardLayout(sb.ToString(), size);
     }
-    
 
+    public static IEnumerable<ExpressionLayout> ExtractExpressionLayouts(this ICanvas canvas, params int[] allowLengths)
+    {
+        if (allowLengths is null || allowLengths.Length == 0)
+            allowLengths = [5, 7]; // 默认支持 5 和 7
+        return ExpressionLayoutBuilderCore.ExtractLayouts(
+            size: canvas.CanvasSize,
+            isValid: canvas.HasValue,  // 关键：只看格子是否已有数字
+            allowExpressionLengths: allowLengths);
+    }
+    
+    /// <summary>
+    /// 统计当前盘面上满足条件的算式数量
+    /// 用法：
+    ///   canvas.CountEquations()                    → 统计所有算式数量
+    ///   canvas.CountEquations(e => e.Length == 7)  → 统计长度为7的算式（你最爱）
+    ///   canvas.CountEquations(e => e.IsHorizontal) → 统计横向算式
+    /// </summary>
+    public static int CountEquations(this ICanvas canvas, Func<ExpressionLayout, bool>? predicate = null)
+    {
+        // 如果没传条件 = 统计全部
+        if (predicate is null)
+            return canvas.ExtractExpressionLayouts().Count();
+
+        // 有条件 = 按条件过滤统计
+        return canvas.ExtractExpressionLayouts().Count(predicate);
+    }
+    
+    /// <summary>
+    /// 统计长度为7的算式数量（极简写法）
+    /// </summary>
+    public static int CountSevens(this ICanvas canvas)
+        => canvas.CountEquations(e => e.Length == 7);
+
+    /// <summary>
+    /// 统计长度为5的算式数量
+    /// </summary>
+    public static int CountFives(this ICanvas canvas)
+        => canvas.CountEquations(e => e.Length == 5);
+
+    /// <summary>
+    /// 统计横向算式数量
+    /// </summary>
+    public static int CountHorizontal(this ICanvas canvas)
+        => canvas.CountEquations(e => e.Direction == Direction.Horizontal);
+
+    /// <summary>
+    /// 统计纵向算式数量
+    /// </summary>
+    public static int CountVertical(this ICanvas canvas)
+        => canvas.CountEquations(e => e.Direction == Direction.Vertical);
 }

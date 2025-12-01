@@ -11,15 +11,11 @@ namespace CrossMath.Core.Generators.SearchPolicys;
 public sealed class DepthFirstSearchPolicy : ISearchPolicy
 {
     private const int MaxDepthHardLimit = 60; // 硬防栈溢出，但比 50 更宽容
-
-    // 灵魂去重专用 —— 跨实例共享，永不重复
-    private static readonly HashSet<ulong> Seen = new();
-
+    
     public IEnumerable<BoardLayout> Search(LayoutGenContext ctx, ICanvas initialCanvas)
     {
-        // 可选：每次生成前清空去重表（生成多盘）或不清空（全局唯一）
-        Seen.Clear(); // 每次重新开始
-
+        // 使用 ctx 提供的全局去重（自动按尺寸隔离 + 亿级容量）
+        var seen = ctx.Seen;
         var stack = new Stack<SearchNode>();
         stack.Push(new SearchNode(initialCanvas.Clone(), Depth: 0, LastPlacement: null));
 
@@ -29,7 +25,7 @@ public sealed class DepthFirstSearchPolicy : ISearchPolicy
 
             // Step 1: 灵魂去重 —— 见过就跳过（核心！）
             ulong hash = ctx.Hash.ComputeHash(node.Canvas);
-            if (!Seen.Add(hash))
+            if (!seen.Add(hash))
                 continue; // 重复布局，直接丢弃，不浪费一微秒
 
             // Step 2: 完成判定 —— 找到一个有效布局
