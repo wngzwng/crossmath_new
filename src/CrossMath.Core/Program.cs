@@ -19,6 +19,7 @@ using CrossMath.Core.Generators.Canvas;
 using CrossMath.Core.Generators.PlacementGenerators;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
+using CrossMath.Core.Utils;
 using Microsoft.Extensions.Logging;
 
 Console.WriteLine("Hello, World!");
@@ -131,73 +132,88 @@ var filler = new LayoutFiller(provider)
 //     }
 // }
 // smart layoutGenerator
-// var canvas = new LayoutCanvas(11, 11);
-// canvas.TryApplyPlacement(new Placement(0, 0, Direction.Horizontal, 5), out var _);
-//
-// var ctx = new LayoutGenContext();
-//
-// var layoutGenerator = new LayoutGeneratorSimple();
-// foreach (var layout in layoutGenerator.Generate(canvas, ctx, 10 ))
-// {
-//     layout.LogicPrettyPrint();
-// }
+var canvas = new LayoutCanvas(11, 11);
+canvas.TryApplyPlacement(new Placement(0, 0, Direction.Horizontal, 5), out var _);
+
+var ctx = new LayoutGenContext();
+
+var layoutGenerator = new LayoutGeneratorSimple();
+foreach (var layout in layoutGenerator.Generate(canvas, ctx, 10 ))
+{
+    layout.LogicPrettyPrint();
+    Console.WriteLine($"{layout.Sigma()}");
+}
 
 // min=1, max=1 difficulty:11111    
-var level_1 = "7701fd00fa09fdfb001ffc00fa00fafcfafb1300151afafa092d09130c1316";
-var layout_1 = "1111100100010010111111010101101010100100010010001";
+// var level_1 = "7701fd00fa09fdfb001ffc00fa00fafcfafb1300151afafa092d09130c1316";
+// var layout_1 = "1111100100010010111111010101101010100100010010001";
+//
+// //min=1, max = 2  difficulty: 1222222122
+// var level_2 = "7726fe00fa02fc0000fb00fa2dfcfafc00fb00fa0000fafa00fe00fa0b0b132f1c11190a23221602";
+// var layout_2 = "0011111001000010111111010001111110110000011111101";
+//
+// // min=1, max=3 difficulty: 3332223221   3,3,3,2,2,2,3,2,2,1
+// var level_3 = "7700fb00fa55fbfc0000fc00fa00fafcfa0000fb00fa78fa00fe07fa080352756e135b78364238";
+// var layout_3 = "1111100100010010111111010100101111100100000011111";
+//
+// // min = 1, max=4  difficulty: 3344241233
+// var level_4 = "7700fb00fa13fbfc05fc00fa000ffbfafa000000fa00fb00fa001201020302040407040b";
+// var layout_4 = "0011111000010111111011000101100010110000001111100";
+//
+// // min = 3, max = 4 difficulty: 333 444 333 4 33444444444444    3,3,3,4,4,4,3,3,3,4,3,3,4,4,4,4,4,4,4,4,4,4,4,4
+// // 
+// var level_5 = "bb00fd08fa000000fbfbfd000000fc00fa00fcfcfafafa000efb00fa0000fafa00fd00fa0000fbfc0000fd00fa00fafa00fc00fa00010817191810050401170d1b190102020712050414141202";
+// var layout_5 = "0011111010100000010101100010111111000101010110001111101100010000001111101000000100010000001000111110010001000000111110000";
+//
+// var board = BoardDataCodec.Decode(level_5, layout_5);
+// board.PrettyPrint();
+//
+// // 创建 LoggerFactory
+// using var loggerFactory = LoggerFactory.Create(builder =>
+// {
+//     builder.AddConsole();  // 添加控制台日志提供者
+//     builder.AddDebug();   // 添加调试输出日志提供者
+//     // 可以添加其他日志提供者，如文件日志等
+// });
+//
+// // 难度评估
+// var evaluator = new GlobalDifficultyEvaluator([
+//         new GlobalDifficultyLayerOne(),
+//         new GlobalDifficultyLayerTwo(),
+//         new GlobalDifficultyLayerThree(),
+//     ], loggerFactory);
+//
+// List<KeyValuePair<RowCol, int>> result = null;
+// using (PerformanceScope.Measure("难度评估"))
+// {
+//     result = evaluator.Evaluate(evaluator.CreateContext(board)).OrderBy(x => x.Key).ToList();
+// }
+// foreach (var pair in result)
+// {
+//     Console.WriteLine($"{pair.Key},{pair.Value}");
+// }
+// var resultList = result.Select(x => x.Value).ToList();
+// Console.WriteLine($"{string.Join(",", resultList)}");
+//
+// var boardSolver = new BoardSolver();
+// var counter = 0;
+//
+// using var scope = new PerformanceScope("求解");
+// foreach (var solution in boardSolver.Solve(board, boardSolver.CreateDefaultExpressionSolverProvider()))
+// {
+//     Console.WriteLine($"========{++counter}============");
+//     var answers = solution.solutionMap.OrderBy(pair => pair.Key).ToList();
+//     Console.WriteLine(string.Join(",", answers.Select(pair => pair.Value)));
+//     // foreach (var keyValuePair in answers)
+//     // {
+//     //     Console.WriteLine($"{keyValuePair.Key},{keyValuePair.Value}");
+//     // }
+// }
 
-//min=1, max = 2  difficulty: 1222222122
-var level_2 = "7726fe00fa02fc0000fb00fa2dfcfafc00fb00fa0000fafa00fe00fa0b0b132f1c11190a23221602";
-var layout_2 = "0011111001000010111111010001111110110000011111101";
-
-// min=1, max=3 difficulty: 3332223221   3,3,3,2,2,2,3,2,2,1
-var level_3 = "7700fb00fa55fbfc0000fc00fa00fafcfa0000fb00fa78fa00fe07fa080352756e135b78364238";
-var layout_3 = "1111100100010010111111010100101111100100000011111";
-
-// min = 1, max=4  difficulty: 3344241233
-var level_4 = "7700fb00fa13fbfc05fc00fa000ffbfafa000000fa00fb00fa001201020302040407040b";
-var layout_4 = "0011111000010111111011000101100010110000001111100";
-
-// min = 3, max = 4 difficulty: 333 444 333 4 33444444444444    3,3,3,4,4,4,3,3,3,4,3,3,4,4,4,4,4,4,4,4,4,4,4,4
-// 
-var level_5 = "bb00fd08fa000000fbfbfd000000fc00fa00fcfcfafafa000efb00fa0000fafa00fd00fa0000fbfc0000fd00fa00fafa00fc00fa00010817191810050401170d1b190102020712050414141202";
-var layout_5 = "0011111010100000010101100010111111000101010110001111101100010000001111101000000100010000001000111110010001000000111110000";
-
-var board = BoardDataCodec.Decode(level_5, layout_5);
-board.PrettyPrint();
-
-// 创建 LoggerFactory
-using var loggerFactory = LoggerFactory.Create(builder =>
+// 四象限点的划分 
+var size3x3 = new Size(3, 3);
+var size4x4 = new Size(4, 4);
+foreach (var (start, end) in  size4x4.GetQuadrants())
 {
-    builder.AddConsole();  // 添加控制台日志提供者
-    builder.AddDebug();   // 添加调试输出日志提供者
-    // 可以添加其他日志提供者，如文件日志等
-});
-
-// 难度评估
-var evaluator = new GlobalDifficultyEvaluator([
-        new GlobalDifficultyLayerOne(),
-        new GlobalDifficultyLayerTwo(),
-        new GlobalDifficultyLayerThree(),
-    ], loggerFactory);
-
-var result = evaluator.Evaluate(evaluator.CreateContext(board)).OrderBy(x => x.Key).ToList();
-foreach (var pair in result)
-{
-    Console.WriteLine($"{pair.Key},{pair.Value}");
-}
-var resultList = result.Select(x => x.Value).ToList();
-Console.WriteLine($"{string.Join(",", resultList)}");
-
-var boardSolver = new BoardSolver();
-var counter = 0;
-foreach (var solution in boardSolver.Solve(board, boardSolver.CreateDefaultExpressionSolverProvider()))
-{
-    Console.WriteLine($"========{++counter}============");
-    var answers = solution.solutionMap.OrderBy(pair => pair.Key).ToList();
-    Console.WriteLine(string.Join(",", answers.Select(pair => pair.Value)));
-    // foreach (var keyValuePair in answers)
-    // {
-    //     Console.WriteLine($"{keyValuePair.Key},{keyValuePair.Value}");
-    // }
+    Console.WriteLine($"start: {start}, end: {end}");
 }

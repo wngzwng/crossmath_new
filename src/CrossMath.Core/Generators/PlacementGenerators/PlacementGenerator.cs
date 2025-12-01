@@ -16,6 +16,8 @@ public class PlacementGenerator : IPlacementGenerator
     private Dictionary<RowCol, CellType> _cellTypeMap = new();   // RowCol → CellType 映射
 
     private List<(int Length, CrossType Cross)> _placeStrategies = new();
+    
+    private bool _stopAtFirstMatch = false; // ← “遇到第一个能放的策略就停”
 
 
     // ==========================================================
@@ -27,8 +29,13 @@ public class PlacementGenerator : IPlacementGenerator
         _placeStrategies = placeStrategies.ToList();
         return this;
     }
-
-
+    
+    public PlacementGenerator StopAtFirstMatch(bool stopAtFirstMatch)
+    {
+        _stopAtFirstMatch = stopAtFirstMatch;
+        return this;
+    }
+        
     // ==========================================================
     // 2. 入口 API
     // ==========================================================
@@ -57,23 +64,38 @@ public class PlacementGenerator : IPlacementGenerator
     {
         foreach (var (len, cross) in strategies)
         {
-            var seq = GenerateCore(canvas, len, cross);
+            bool matched = false;
 
+            foreach (var p in GenerateCore(canvas, len, cross))
+            {
+                yield return p;
+                matched = true;
+            }
+
+            if (matched && _stopAtFirstMatch)
+                yield break;
+            // var seq = GenerateCore(canvas, len, cross);
+            //
             // var first = seq.FirstOrDefault();
             // if (first != null)
             // {
             //     yield return first;
             //     foreach (var item in seq.Skip(1))
             //         yield return item;
+            //
+            //     if (_stopAtFirstMatch)
+            //     {
+            //         yield break;
+            //     }
             // }
             
-            if (seq.TryUncons(out var head, out var tail))
-            {
-                yield return head;
-                foreach (var x in tail)
-                    yield return x;
-                yield break;
-            }
+            // if (seq.TryUncons(out var head, out var tail))
+            // {
+            //     yield return head;
+            //     foreach (var x in tail)
+            //         yield return x;
+            //     yield break;
+            // }
         }
     }
 
@@ -84,8 +106,7 @@ public class PlacementGenerator : IPlacementGenerator
 
     public void Init(ICanvas canvas)
     {
-        _layouts = ExpressionLayoutBuilderCore
-            .ExtractLayouts(canvas.CanvasSize, canvas.HasValue, [5, 7]);
+        _layouts = canvas.ExtractExpressionLayouts(5, 7).ToList();
 
         _filledLines = _layouts
             .Select(l => new Placement(
