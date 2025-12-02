@@ -170,5 +170,23 @@ public static class MathMisc
         if (s < int.MinValue) return int.MinValue;
         return (int)s;
     }
+    
+    
+    public static double CalcSigma(List<int> nums)
+    {
+        if (nums.Count == 0)
+            return 0;
+
+        double mean = nums.Average();
+        double variance = nums.Sum(x => (x - mean) * (x - mean)) / nums.Count;
+        double std = Math.Sqrt(variance);
+
+        // 如果接近整数（误差允许 1e-9）
+        double rounded = Math.Round(std);
+        if (Math.Abs(std - rounded) < 1e-9)
+            return rounded; // 返回整数（double 类型）
+
+        return Math.Round(std, 2); // 保留两位小数
+    }
 }
 

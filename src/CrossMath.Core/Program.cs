@@ -210,10 +210,10 @@ foreach (var layout in layoutGenerator.Generate(canvas, ctx, 10 ))
 //     // }
 // }
 
-// 四象限点的划分 
-var size3x3 = new Size(3, 3);
-var size4x4 = new Size(4, 4);
-foreach (var (start, end) in  size4x4.GetQuadrants())
-{
-    Console.WriteLine($"start: {start}, end: {end}");
-}
+// // 四象限点的划分 
+// var size3x3 = new Size(3, 3);
+// var size4x4 = new Size(4, 4);
+// foreach (var (start, end) in  size4x4.GetQuadrants())
+// {
+//     Console.WriteLine($"start: {start}, end: {end}");
+// }
