@@ -1,6 +1,7 @@
 using business.works.Layout;
 using CrossMath.Core.Types;
 using CrossMath.Core.Generators.PlacementGenerators; 
+using CrossMath.Core.Generators.StopPolicies;
 
 namespace business.works;
 
@@ -37,10 +38,16 @@ public static class LayoutJobBatchFactory
     
     public static IEnumerable<LayoutGenerationJob> CreateJobsFromSpecs(
         int targetCount = 30000,
-        double maxSigma = 6.0)
+        double maxSigma = 6.0,
+        IStopPolicy? stopPolicy = null
+        )
     {
         foreach (var (size, spec) in LayoutFormulaSpec.Specs)
         {
+            IPlacementGenerator placementGenerator = new PlacementGenerator()
+                .WithPlaceStrategies([(5, CrossType.Number), (7, CrossType.Number)])
+                .StopAtFirstMatch(false);
+            
             yield return new LayoutGenerationJob
             {
                 CanvasSize = size,
@@ -48,17 +55,18 @@ public static class LayoutJobBatchFactory
                 MinFormulaCount = spec.Min,
                 MaxFormulaCount = spec.Max,
 
-                TargetCount = targetCount,
                 MaxSigma = maxSigma,
-
-                PlacementGenerator = new PlacementGenerator()
-                    .WithPlaceStrategies([(5, CrossType.Number), (7, CrossType.Number)])
-                    .StopAtFirstMatch(false),
-
+                
+                PlacementGenerator = placementGenerator,
+                
                 InitPlacements = InitialPlacementGenerator.BuildPlacement([
                     (size, 5, CrossType.Number),
                     (size, 7, CrossType.Number),
                 ]),
+                
+                TargetCount = targetCount,
+                
+                StopPolicy = stopPolicy,
             };
         }
     }

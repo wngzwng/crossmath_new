@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using CrossMath.Core.Analytics.EmptyBoard;
 using CrossMath.Core.BoardSolvers;
 using CrossMath.Core.Codec;
 using CrossMath.Core.Evaluation;
@@ -85,18 +86,18 @@ Console.WriteLine("Hello, World!");
 // var layout = "001010111110010101000100111110001001010100011111101111110100000100111110001001000000010011111000100";
 // var boardLayout = new BoardLayout(layout, width: 11, height: 9);
 //
-var provider = ExpressionSolverProvider.CreateDefault();
-var solvedCtx = new ExpressionSolveContext()
-{
-    NumPool = NumberPoolFactory.Create(1, 20, NumberOrder.Shuffled),
-    OpPool = OperatorPoolFactory.MDAS,
-    Validator = new ExpressionValidator(ValidationMode.FullPoolCheck)
-};
-//
-var filler = new LayoutFiller(provider)
-    .Setup(solvedCtx)
-    .WithSolutionSampleLimit(20)
-    .WithFirstFillMode(FirstFillSelectMode.Random);
+// var provider = ExpressionSolverProvider.CreateDefault();
+// var solvedCtx = new ExpressionSolveContext()
+// {
+//     NumPool = NumberPoolFactory.Create(1, 20, NumberOrder.Shuffled),
+//     OpPool = OperatorPoolFactory.MDAS,
+//     Validator = new ExpressionValidator(ValidationMode.FullPoolCheck)
+// };
+// //
+// var filler = new LayoutFiller(provider)
+//     .Setup(solvedCtx)
+//     .WithSolutionSampleLimit(20)
+//     .WithFirstFillMode(FirstFillSelectMode.Random);
 
 // fillter.SetSolutionSampleLimit(100);
 // if (fillter.TryFill(boardLayout, 100, out var board, out var successIndex))
@@ -132,17 +133,17 @@ var filler = new LayoutFiller(provider)
 //     }
 // }
 // smart layoutGenerator
-var canvas = new LayoutCanvas(11, 11);
-canvas.TryApplyPlacement(new Placement(0, 0, Direction.Horizontal, 5), out var _);
+// var canvas = new LayoutCanvas(11, 11);
+// canvas.TryApplyPlacement(new Placement(0, 0, Direction.Horizontal, 5), out var _);
+//
+// var ctx = new LayoutGenContext();
 
-var ctx = new LayoutGenContext();
-
-var layoutGenerator = new LayoutGeneratorSimple();
-foreach (var layout in layoutGenerator.Generate(canvas, ctx, 10 ))
-{
-    layout.LogicPrettyPrint();
-    Console.WriteLine($"{layout.Sigma()}");
-}
+// var layoutGenerator = new LayoutGeneratorSimple();
+// foreach (var layout in layoutGenerator.Generate(canvas, ctx, 10 ))
+// {
+//     layout.LogicPrettyPrint();
+//     Console.WriteLine($"{layout.Sigma()}");
+// }
 
 // min=1, max=1 difficulty:11111    
 // var level_1 = "7701fd00fa09fdfb001ffc00fa00fafcfafb1300151afafa092d09130c1316";
@@ -217,3 +218,11 @@ foreach (var layout in layoutGenerator.Generate(canvas, ctx, 10 ))
 // {
 //     Console.WriteLine($"start: {start}, end: {end}");
 // }
+
+
+
+var layout = "1111101000010101010000111110111111010101000110101010001000010100010011111000100100000000001000000000010000000000100000000";
+var boardLayout = new BoardLayout(layout, width: 11, height: 11);
+var brief = EmptyBoardAnalyzer.GetInfo(boardLayout);
+boardLayout.LogicPrettyPrint();
+Console.WriteLine(brief);   

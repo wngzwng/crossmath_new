@@ -3,7 +3,7 @@ using CrossMath.Core.Generators.Canvas;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
 
-namespace CrossMath.Core.Generators.SearchPolicys;
+namespace CrossMath.Core.Generators.SearchPolicies;
 
 /// <summary>
 /// 深度优先搜索策略 —— 经典、暴力、灵魂级去重版

@@ -1,7 +1,7 @@
 using CrossMath.Core.Generators.Canvas;
 using CrossMath.Core.Models;
 
-namespace CrossMath.Core.Generators.SearchPolicys;
+namespace CrossMath.Core.Generators.SearchPolicies;
 
 public interface ISearchPolicy
 {

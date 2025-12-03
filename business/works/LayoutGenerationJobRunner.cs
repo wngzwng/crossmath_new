@@ -12,7 +12,7 @@ public sealed class LayoutGenerationJobRunner
 
     public IEnumerable<BoardLayout> Run(LayoutGenerationJob job)
     {
-        var ctx = BuildContext(job);
+        var ctx = job.CreateContext(_globalSeen);
 
         if (job.InitPlacements.Count() == 0)
         {
@@ -28,7 +28,7 @@ public sealed class LayoutGenerationJobRunner
             var initCanvas = new LayoutCanvas(job.CanvasSize);
             if (initCanvas.TryApplyPlacement(initPlacement, out _))
             {
-                foreach (var layout in _generator.Generate(initCanvas, ctx, job.TargetCount))
+                foreach (var layout in _generator.Generate(initCanvas, ctx))
                 {
                     found++;
 
@@ -41,31 +41,5 @@ public sealed class LayoutGenerationJobRunner
                 }
             }
         }
-    }
-
-    private LayoutGenContext BuildContext(LayoutGenerationJob job)
-    {
-        return new LayoutGenContext
-        {
-            PlacementGenerator = job.PlacementGenerator,
-            ExpandController = new FormulaCountExpandController(
-                new Dictionary<Size, int>
-                {
-                    [job.CanvasSize] = job.MaxFormulaCount
-                }),
-
-            CompletionChecker = new CommonCompletionChecker()
-                .AddSizeFilter(size => size.Equals(job.CanvasSize))
-                .AddFormulaCountFilter(cnt => job.MinFormulaCount <= cnt && cnt <= job.MaxFormulaCount)
-                .AddSigmaFilter(sigma => sigma <= job.MaxSigma)
-                .AddCustomFilter(canvas => 
-                    canvas.CountEquations(expLayout => expLayout.Length == 7) switch
-                    {
-                        1 or 2 => true,
-                        _ => false
-                    }),
-            
-            GlobalSeen = _globalSeen
-        };
     }
 }
