@@ -12,6 +12,4 @@ public enum HoleCountType
     FormulaCountMinus1, // 算式数-1
 
     MaxCount,           // 最大算式数
-    
-    
 }

@@ -22,4 +22,6 @@ public interface IHollowOutStrategy
     RowCol? GetNextHoleCoordinate(
         HollowOutContext context,
         IEnumerable<RowCol>? candidatePositions = null);
+
+    bool AllowHollowOutOperator { get; }
 }

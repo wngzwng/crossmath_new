@@ -18,6 +18,10 @@ using CrossMath.Core.Fillers;
 using CrossMath.Core.Generators;
 using CrossMath.Core.Generators.Canvas;
 using CrossMath.Core.Generators.PlacementGenerators;
+using CrossMath.Core.HoleDiggers;
+using CrossMath.Core.HoleDiggers.HoleCount;
+using CrossMath.Core.HoleDiggers.HoleVadidators;
+using CrossMath.Core.HoleDiggers.HollowOutStrategies;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
 using CrossMath.Core.Utils;
@@ -221,20 +225,27 @@ Console.WriteLine("Hello, World!");
 // }
 
 
-// var level = "7502fb03fa05fbfbfc02fb02fa04fbfafa06fc05fa01fa0afc07fa03";
-// var layout = "11111101011111110101111111000011111";
-// var borad = BoardDataCodec.Decode(level, layout);
-// borad.PrettyPrint();
-// var boardLayout = new BoardLayout(layout, width: 11, height: 11);
-// var brief = EmptyBoardAnalyzer.GetInfo(boardLayout);
-// boardLayout.LogicPrettyPrint();
-// Console.WriteLine(brief);   
+var level = "bb67fb04fb04fa6ffbfbfc11fb48fa5914fafafa784cfb0ffa5b0afbfb2720fb09fa2901fbfbfafbfb09fb03fa0c18fb3bfa53fafafafa302cfb38fa645e";
+var layout = "0011111110000101000100001111101000010100010000101111101000000100011000111110110001010101111110111111000100010110001111101";
+var borad = BoardDataCodec.Decode(level, layout);
+borad.PrettyPrint();
 
-using (var tqdm = ProgressBarUtils.Create(100, "进度条测试"))
+// var holeCountType = RandomHoleCountTypeSelector.GetRandomByDefaultWeight();
+var holeCountType = HoleCountType.FormulaCountMinus1;
+var ctx = HollowOutContext.Create(
+    borad, holeCountType, 
+    HollowOutStrategyFactory.CreateStrategy(HollowOutStrategyType.SmallNumberPriority, true), 
+    DefaultHoleValidator.Create());
+var holeDigger = new HoleDigger();
+if (holeDigger.TryHollowOut2(ctx, out var resultBoard))
 {
-    foreach (var i in Enumerable.Range(0, 100))
-    {
-        Thread.Sleep(10);
-        tqdm.Update();            
-    }
+    resultBoard.PrettyPrint();
 }
+// using (var tqdm = ProgressBarUtils.Create(100, "进度条测试"))
+// {
+//     foreach (var i in Enumerable.Range(0, 100))
+//     {
+//         Thread.Sleep(10);
+//         tqdm.Update();            
+//     }
+// }

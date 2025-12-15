@@ -1,6 +1,4 @@
-using CrossMath.Core.Utils;
-
-namespace CrossMath.Core.Analytics.utils;
+namespace CrossMath.Core.Utils;
 
 /// <summary>
 /// 数字友好度计算器（int 版）。
@@ -29,7 +27,7 @@ public static class NumberFriendlyCalculator
     /// <summary>
     /// 计算候选值友好度平均值（整数版，返回 double 仅用于保存小数位）
     /// </summary>
-    public static double CalcFriendly(IEnumerable<int> numbers)
+    public static double CalcFriendlyAverage(IEnumerable<int> numbers)
     {
         var list = numbers.ToList();
         if (list.Count == 0)
@@ -38,6 +36,11 @@ public static class NumberFriendlyCalculator
         var scores = list.Select(x => MatchRule(x, RuleTable, 0)).ToList();
 
         return Math.Round(scores.Average(), 2);
+    }
+    
+    public static double CalcFriendly(int number)
+    {
+        return MatchRule(number, RuleTable, 0);
     }
 
     // ======================================================

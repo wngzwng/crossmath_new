@@ -3,15 +3,13 @@ using CrossMath.Core.Types;
 using CrossMath.Core.Utils;
 
 namespace CrossMath.Core.HoleDiggers.HollowOutStrategies;
-
-
 /// <summary>
-/// 数字友好度高优先策略：优先挖空数字友好度高的数字<br/>
-/// 每个数字的权重为它的数字友好度
+/// 小数字优先策略：优先挖空数字较小的数字<br/>
+/// 每个数字的权重为（1/它的数值）
 /// </summary>
-public class NumberFriendlinessPriorityStrategy: IHollowOutStrategy
+public class SmallNumberPriorityStrategy: IHollowOutStrategy
 {
-    public bool AllowHollowOutOperator => false;
+  public bool AllowHollowOutOperator => false;
     
     private Dictionary<RowCol, double>? _allAllowRowColWeights = null;
     
@@ -75,8 +73,14 @@ public class NumberFriendlinessPriorityStrategy: IHollowOutStrategy
             .ToDictionary(kv => kv.Key, kv => kv.Value);
         
         return rowColWeights
-            .Select(kv => KeyValuePair.Create(kv.Key, Math.Pow(Math.E, NumberFriendlyCalculator.CalcFriendly(kv.Value))))
+            .Select(kv => KeyValuePair.Create(kv.Key, CalculateWeight(kv.Value)))
             .ToDictionary(kv => kv.Key, kv => kv.Value);
+    }
+
+    public double CalculateWeight(int number)
+    {
+        // return 1 / number;
+        return 1.0 / number;
     }
     
     private Dictionary<RowCol, CellType> GetRowColCellTypeMap(IEnumerable<ExpressionLayout> layouts)

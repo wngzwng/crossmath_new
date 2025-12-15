@@ -1,4 +1,5 @@
 using CrossMath.Core.Expressions.Layout;
+using CrossMath.Core.HoleDiggers.HoleCount;
 using CrossMath.Core.HoleDiggers.HoleVadidators;
 using CrossMath.Core.HoleDiggers.HollowOutStrategies;
 using CrossMath.Core.Models;
@@ -8,6 +9,7 @@ namespace CrossMath.Core.HoleDiggers;
 
 /// <summary>
 /// 挖空上下文类，包含挖空过程中所需的所有相关数据和策略
+/// 支持两种期望挖空数设定模式：固定值 或 动态计算（基于 HoleCountType）
 /// </summary>
 public sealed class HollowOutContext
 {
@@ -17,74 +19,115 @@ public sealed class HollowOutContext
     public BoardData OriginalBoard { get; }
 
     /// <summary>
-    /// 当前正在工作的棋盘（挖空后会变成题目棋盘）
+    /// 当前正在工作的棋盘
     /// </summary>
     public BoardData WorkingBoard { get; private set; }
 
     /// <summary>
-    /// 算式布局信息（用于初始化数字格/操作符格）
+    /// 算式布局信息
     /// </summary>
     public List<ExpressionLayout> Layouts { get; } = new();
 
     /// <summary>
-    /// 期望的挖空数量
+    /// 当前最终期望的挖空数量（可能在运行中动态更新）
     /// </summary>
-    public int ExpectedHollowCount { get; set; }
+    public int ExpectedHollowCount { get; private set; }
 
     /// <summary>
-    /// 挖空策略（决定下一个挖哪个格子）
+    /// 【可选】动态计算状态（当使用 HoleCountType 策略时需要）
+    /// </summary>
+    public ExpectedHollowCountState? DynamicState { get; private set; }
+
+    /// <summary>
+    /// 是否使用动态计算模式（true = 使用 DynamicState 动态更新 ExpectedHollowCount）
+    /// </summary>
+    public bool IsDynamicMode => DynamicState != null;
+
+    /// <summary>
+    /// 挖空策略
     /// </summary>
     public IHollowOutStrategy HollowOutStrategy { get; set; }
 
     /// <summary>
-    /// 挖空验证器（判断挖空后是否仍然唯一解）
+    /// 挖空验证器
     /// </summary>
     public IHoleValidator HoleValidator { get; set; }
 
     /// <summary>
-    /// 所有位置状态的统一管理对象
+    /// 位置状态管理
     /// </summary>
     public HollowPositionState PositionState { get; } = new();
 
     // ======================== 只读统计属性 ========================
-
     public int CurrentHollowCount => PositionState.SuccessfulCount;
-
     public bool HasReachedExpectedCount => CurrentHollowCount >= ExpectedHollowCount;
-
     public int RemainingHollowCount => Math.Max(0, ExpectedHollowCount - CurrentHollowCount);
 
-    // ======================== 构造函数 ========================
+    // ======================== 构造函数（支持两种模式） ========================
 
-    public HollowOutContext(
+    private HollowOutContext(BoardData originalBoard)
+    {
+        OriginalBoard = originalBoard ?? throw new ArgumentNullException(nameof(originalBoard));
+        WorkingBoard = originalBoard.Clone();
+    }
+
+    /// <summary>
+    /// 【固定值模式】直接指定期望挖空数
+    /// </summary>
+    public static HollowOutContext CreateFixed(
         BoardData originalBoard,
         int expectedHollowCount,
         IHollowOutStrategy hollowOutStrategy,
         IHoleValidator holeValidator,
         IEnumerable<ExpressionLayout>? layouts = null)
     {
-        OriginalBoard   = originalBoard ?? throw new ArgumentNullException(nameof(originalBoard));
-        WorkingBoard    = originalBoard.Clone();               // 工作副本
-        ExpectedHollowCount = expectedHollowCount;
-        HollowOutStrategy    = hollowOutStrategy ?? throw new ArgumentNullException(nameof(hollowOutStrategy));
-        HoleValidator        = holeValidator     ?? throw new ArgumentNullException(nameof(holeValidator));
+        var ctx = new HollowOutContext(originalBoard)
+        {
+            ExpectedHollowCount = expectedHollowCount,
+            HollowOutStrategy = hollowOutStrategy ?? throw new ArgumentNullException(nameof(hollowOutStrategy)),
+            HoleValidator = holeValidator ?? throw new ArgumentNullException(nameof(holeValidator))
+        };
 
+        ctx.InitializeLayouts(layouts);
+        return ctx;
+    }
+
+    /// <summary>
+    /// 【动态计算模式】使用 HoleCountType 策略，ExpectedHollowCount 会在第一阶段后自动计算
+    /// </summary>
+    public static HollowOutContext Create(
+        BoardData originalBoard,
+        HoleCountType holeCountType,
+        IHollowOutStrategy hollowOutStrategy,
+        IHoleValidator holeValidator,
+        IEnumerable<ExpressionLayout>? layouts = null)
+    {
+       var dynamicState = ExpectedHollowCountState.Create(holeCountType);
+        var ctx = new HollowOutContext(originalBoard)
+        {
+            DynamicState = dynamicState,
+            // 初始给一个极大值，防止第一阶段提前停止
+            ExpectedHollowCount = int.MaxValue,
+            HollowOutStrategy = hollowOutStrategy ?? throw new ArgumentNullException(nameof(hollowOutStrategy)),
+            HoleValidator = holeValidator ?? throw new ArgumentNullException(nameof(holeValidator))
+        };
+
+        ctx.InitializeLayouts(layouts);
+        return ctx;
+    }
+
+    private void InitializeLayouts(IEnumerable<ExpressionLayout>? layouts)
+    {
         if (layouts != null)
             Layouts.AddRange(layouts);
         else
-        {
             Layouts.AddRange(ExpressionLayoutBuilder.ExtractLayouts(OriginalBoard.Layout, [5, 7]));
-        }
 
-        // 根据布局初始化数字格和操作符格集合
         PositionState.InitializeFromLayouts(Layouts);
     }
 
-    // ======================== 核心操作 ========================
+    // ======================== 核心方法 ========================
 
-    /// <summary>
-    /// 尝试在指定位置挖空
-    /// </summary>
     public bool TryHollowOut(RowCol position)
     {
         // 1. 必须是合法候选点
@@ -104,37 +147,37 @@ public sealed class HollowOutContext
         return true;
     }
 
-    /// <summary>
-    /// 通过策略获取下一个建议挖空的坐标
-    /// </summary>
-    public RowCol? GetNextHoleCoordinate()
-    {
-        return HollowOutStrategy?.GetNextHoleCoordinate(this);
-    }
+    public RowCol? GetNextHoleCoordinate(IEnumerable<RowCol>? candidatePositions = null)
+        => HollowOutStrategy?.GetNextHoleCoordinate(this, candidatePositions);
 
-    /// <summary>
-    /// 判断是否还有可挖空的候选点（不依赖策略的顺序）
-    /// </summary>
     public bool HasValidCandidates()
-    {
-        // 只要还有未挖空且非死点的数字格或操作符格，就认为还有候选
-        return PositionState.AvailableNumberCells.Any() ||
-               PositionState.AvailableOperatorCells.Any();
-    }
+        => PositionState.AvailableNumberCells.Any() || PositionState.AvailableOperatorCells.Any();
 
-    /// <summary>
-    /// 重置挖空状态（重新开始挖空时调用）
-    /// </summary>
     public void Reset()
     {
         WorkingBoard = OriginalBoard.Clone();
-        PositionState.ClearHollowState();   // 只清空成功/失败状态，保留数字格和操作符格信息
-        Layouts.Clear();
-        Layouts.AddRange(ExpressionLayoutBuilder.ExtractLayouts(OriginalBoard.Layout, [5, 7])); // 如果原始棋盘能提供布局的话
+        PositionState.ClearHollowState();
+        // Layouts 不清空，保持一致
     }
 
-    /// <summary>
-    /// 获取当前挖空后的题目棋盘（外部调用完成后取结果）
-    /// </summary>
     public BoardData GetResultBoard() => WorkingBoard.Clone();
+
+    // ======================== 关键新增：动态更新期望值 ========================
+
+    /// <summary>
+    /// 在第一阶段结束后调用：根据 DynamicState 和实际 minHoleCount 计算最终期望挖空数
+    /// </summary>
+    /// <param name="phaseOneMinHollowCount">第一阶段得到的约束下最大挖空数</param>
+    /// <returns>最终计算出的期望挖空数</returns>
+    public int UpdateExpectedHollowCountAfterPhaseOne(int phaseOneMinHollowCount)
+    {
+        if (!IsDynamicMode)
+            throw new InvalidOperationException("只有动态模式才能调用 UpdateExpectedHollowCountAfterPhaseOne");
+
+        int formulaCount = Layouts.Count;
+        // 动态计算最终期望值
+        ExpectedHollowCount = DynamicState.CalculateExpected(phaseOneMinHollowCount, formulaCount);
+
+        return ExpectedHollowCount;
+    }
 }

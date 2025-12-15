@@ -2,7 +2,7 @@ namespace CrossMath.Core.HoleDiggers.HoleCount;
 /// <summary>
 /// 默认权重配置管理类
 /// </summary>
-public static class DefaultHoleCountWeights
+public static class HoleCountWeights
 {
     /// <summary>
     /// 获取默认的权重配置字典

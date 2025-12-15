@@ -1,5 +1,3 @@
-using System.Text;
-using CrossMath.Core.Analytics.utils;
 using CrossMath.Core.Codec;
 using CrossMath.Core.Expressions;
 using CrossMath.Core.Expressions.Core;
@@ -7,6 +5,7 @@ using CrossMath.Core.Expressions.Layout;
 using CrossMath.Core.Expressions.Schema;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
+using CrossMath.Core.Utils;
 
 namespace CrossMath.Core.Analytics.FinalBoard;
 
@@ -64,7 +63,7 @@ public class FinalBoardAnalyzer
     // ----------------------------
     public double CalcFriendly(IEnumerable<int> numbers)
     {
-        return NumberFriendlyCalculator.CalcFriendly(numbers);
+        return NumberFriendlyCalculator.CalcFriendlyAverage(numbers);
     }
 
     // ----------------------------

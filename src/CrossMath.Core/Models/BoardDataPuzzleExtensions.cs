@@ -47,6 +47,7 @@ public static class BoardDataPuzzleExtensions
         if (!board.IsFilled(pos))
             return false;
 
+        value = board.FilledValues[pos];
         // 移除盘面值
         board.FilledValues.Remove(pos);
 

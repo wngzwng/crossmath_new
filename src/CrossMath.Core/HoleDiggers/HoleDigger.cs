@@ -1,4 +1,6 @@
 using System;
+using CrossMath.Core.Expressions.Core;
+using CrossMath.Core.Expressions.Layout;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
 
@@ -68,27 +70,123 @@ public sealed class HoleDigger
 
         return successFinal;
     }
+    
+    public bool TryHollowOut2(HollowOutContext ctx, out BoardData? resultBoard)
+    {
+        if (ctx == null) throw new ArgumentNullException(nameof(ctx));
+        if (ctx.HollowOutStrategy == null) throw new InvalidOperationException("HollowOutStrategy 未设置");
+        if (ctx.HoleValidator == null) throw new InvalidOperationException("HoleValidator 未设置");
 
+        resultBoard = null;
+
+        // 1. 重置上下文（恢复工作棋盘、清除成功/失败标记）
+        ctx.Reset();
+
+        var minHoleCount = MinHollowOutCount(ctx);
+        // 更新 ExpectedHollowCount 
+        ctx.UpdateExpectedHollowCountAfterPhaseOne(minHoleCount);
+        Console.WriteLine("第一阶段挖空后的空盘");
+        ctx.WorkingBoard.PrettyPrint();
+        // 判断是否停止
+        if (ShoudStop(ctx))
+        {
+            resultBoard = ctx.GetResultBoard();
+            return true;
+        }
+        ctx.WorkingBoard.PrettyPrint();
+        // 进入第二阶段
+        
+        GobalHollowOut(ctx);
+        resultBoard = ctx.WorkingBoard.Clone();
+        return true;
+        
+        bool ShoudStop(HollowOutContext ctx)
+        {
+            return ctx.CurrentHollowCount >= ctx.ExpectedHollowCount;
+        }
+    }
+
+    private int MinHollowOutCount(HollowOutContext ctx)
+    {
+        var minHollowCount = 0;
+
+        var layouts = ctx.Layouts;
+        // ------------------ 步骤1：强制每个算式至少挖一个空 ------------------
+        while (true)
+        {
+            if (!TryGetNextFullExpLayouts(layouts, out var targetExpLayout))
+            {
+                break; // 没有全满的算式了，结束
+            }
+
+            // 在该全满算式内获取策略建议的下一个位置
+            RowCol? holeCoordinate = ctx.GetNextHoleCoordinate(targetExpLayout.Cells);
+
+            if (!holeCoordinate.HasValue)
+            {
+                break; // 策略已无建议，直接退出
+            }
+
+            bool success = ctx.TryHollowOut(holeCoordinate.Value);
+            if (success)
+            {
+                minHollowCount++;
+            }
+            // 失败也不回退，继续尝试下一个全满算式（保持你原逻辑）
+            ctx.WorkingBoard.PrettyPrint();
+        }
+
+        return minHollowCount;
+
+        bool TryGetNextFullExpLayouts(IEnumerable<ExpressionLayout> exprLayouts, out ExpressionLayout targetExpLayout)
+        {
+            targetExpLayout = null;
+            foreach (var expLayout in exprLayouts)
+            {
+                if (expLayout.ToExpression(ctx.WorkingBoard).EmptyCellCount() == 0)
+                {
+                    targetExpLayout = expLayout;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+    }
+
+    private void GobalHollowOut(HollowOutContext ctx)
+    {
+        while (ctx.CurrentHollowCount < ctx.ExpectedHollowCount && ctx.HasValidCandidates())
+        {
+            RowCol? candidate = ctx.GetNextHoleCoordinate();
+
+            // 策略已经没有建议位置 → 直接退出（防止无限循环）
+            if (!candidate.HasValue)
+                break;
+
+            ctx.TryHollowOut(candidate.Value);
+        }
+    }
     /// <summary>
     /// 临时修改期望挖空数量进行一次挖空（不影响 ctx.ExpectedHollowCount）
     /// </summary>
-    public bool TryHollowOut(HollowOutContext ctx, int temporaryTargetCount, out BoardData? resultBoard)
-    {
-        if (temporaryTargetCount < 0)
-            throw new ArgumentOutOfRangeException(nameof(temporaryTargetCount));
-
-        int originalTarget = ctx.ExpectedHollowCount;
-        ctx.ExpectedHollowCount = temporaryTargetCount;
-
-        try
-        {
-            return TryHollowOut(ctx, out resultBoard);
-        }
-        finally
-        {
-            ctx.ExpectedHollowCount = originalTarget; // 恢复原始值
-        }
-    }
+    // public bool TryHollowOut(HollowOutContext ctx, int temporaryTargetCount, out BoardData? resultBoard)
+    // {
+    //     if (temporaryTargetCount < 0)
+    //         throw new ArgumentOutOfRangeException(nameof(temporaryTargetCount));
+    //
+    //     int originalTarget = ctx.ExpectedHollowCount;
+    //     ctx.ExpectedHollowCount = temporaryTargetCount;
+    //
+    //     try
+    //     {
+    //         return TryHollowOut(ctx, out resultBoard);
+    //     }
+    //     finally
+    //     {
+    //         ctx.ExpectedHollowCount = originalTarget; // 恢复原始值
+    //     }
+    // }
 
     /// <summary>
     /// 只挖空一个格子（常用于调试或逐步演示）
