@@ -21,6 +21,12 @@ public sealed class DepthFirstSearchPolicy : ISearchPolicy
 
         while (stack.Count > 0)
         {
+            
+            if (ctx.CancellationToken?.IsCancellationRequested == true || ctx.Stop.IsStopping)
+            {
+                yield break;
+            }
+            
             var node = stack.Pop();
 
             // Step 1: 灵魂去重 —— 见过就跳过（核心！）
@@ -37,7 +43,7 @@ public sealed class DepthFirstSearchPolicy : ISearchPolicy
                 // layout.Stars = DifficultyRater.Rate(layout);
 
                 yield return layout;
-                continue; // 找到一个就继续找下一个（生成多个）
+                // continue; // 找到一个就继续找下一个（生成多个) // 这里不要continue来控制逻辑
             }
 
             // Step 3: 剪枝 —— 深度 + 控制器双重保险
@@ -48,9 +54,11 @@ public sealed class DepthFirstSearchPolicy : ISearchPolicy
                 continue;
 
 
-            var placements = ctx.Gen.Generate(node.Canvas).Shuffle();
+            // var placements = ctx.Gen.Generate(node.Canvas).Shuffle();
+            var placements = ctx.Gen.Generate(node.Canvas);
+            var orderedPlacements = ctx.Order.Order(placements, node.Canvas);
             // Step 4: 生成候选 + 放置（懒加载，最优性能）
-            foreach (var placement in placements)
+            foreach (var placement in orderedPlacements)
             {
                 var cloned = node.Canvas.Clone();
 

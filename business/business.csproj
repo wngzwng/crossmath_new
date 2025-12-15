@@ -13,6 +13,16 @@
 
     <ItemGroup>
       <PackageReference Include="CsvHelper" Version="33.1.0" />
+      <PackageReference Include="System.CommandLine" Version="2.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Data\full\layouts_9x9.csv" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Data\split_output\" />
+      <Folder Include="works\Filler\" />
     </ItemGroup>
 
 </Project>

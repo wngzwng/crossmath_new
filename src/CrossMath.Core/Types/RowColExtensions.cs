@@ -14,4 +14,31 @@ public static class RowColExtensions
         yield return p.Left(); 
         yield return p.Right(); 
     }
+    
+    /// <summary>
+    /// 计算一组点的轴对齐最小包围矩形（左上角和右下角）
+    /// </summary>
+    public static (RowCol Min, RowCol Max) GetMinMaxPosition(this IEnumerable<RowCol> positions)
+    {
+        if (positions == null) throw new ArgumentNullException(nameof(positions));
+
+        using var e = positions.GetEnumerator();
+        if (!e.MoveNext())
+            return (RowCol.Zero, RowCol.Zero); // 或自定义 Empty
+
+        var first = e.Current;
+        int minR = first.Row, maxR = first.Row;
+        int minC = first.Col, maxC = first.Col;
+
+        while (e.MoveNext())
+        {
+            var p = e.Current;
+            if (p.Row < minR) minR = p.Row;
+            if (p.Row > maxR) maxR = p.Row;
+            if (p.Col < minC) minC = p.Col;
+            if (p.Col > maxC) maxC = p.Col;
+        }
+
+        return (new RowCol(minR, minC), new RowCol(maxR, maxC));
+    }
 }

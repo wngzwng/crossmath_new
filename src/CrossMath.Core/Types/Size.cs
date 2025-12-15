@@ -26,9 +26,11 @@ public readonly record struct Size(int Width, int Height)
     
     public static IEnumerable<RowCol> TraverseSection(RowCol start, RowCol end)
     {
-        for (int r = start.Row; r <= end.Row; r++)
+        var minPos = RowCol.At(Math.Min(start.Row, end.Row), Math.Min(start.Col, end.Col));
+        var maxPos = RowCol.At(Math.Max(start.Row, end.Row), Math.Max(start.Col, end.Col));
+        for (int r = minPos.Row; r <= maxPos.Row; r++)
         {
-            for (int c = start.Col; c <= end.Col; c++)
+            for (int c = minPos.Col; c <= maxPos.Col; c++)
             {
                 yield return new RowCol(r, c);
             }

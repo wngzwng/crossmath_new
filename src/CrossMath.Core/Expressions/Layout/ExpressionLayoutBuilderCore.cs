@@ -23,6 +23,7 @@ public static class ExpressionLayoutBuilderCore
             .OrderByDescending(x => x)
             .ToArray();
 
+        var idCounter = 0;
         foreach (var pos in IterAllPositions(height, width))
         {
             if (!isValid(pos)) continue;
@@ -36,7 +37,7 @@ public static class ExpressionLayoutBuilderCore
                 {
                     if (TryExtract(pos, dir, len, isValid, out var coords))
                     {
-                        ExpressionId id = ExpressionId.New();
+                        ExpressionId id = ExpressionId.New(idCounter++);
                         results.Add(new ExpressionLayout(id, dir, coords));
                         break;  
                     }

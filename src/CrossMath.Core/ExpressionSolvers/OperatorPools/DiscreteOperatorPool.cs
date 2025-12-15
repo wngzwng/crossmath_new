@@ -19,4 +19,9 @@ public class DiscreteOperatorPool: IOperatorPool
     public int GetCount(OpType op) => _source.Count(x => x == op);
     public bool IsInfinite => false;
     
+    public override string ToString()
+    {
+        return  $"DiscreteOperatorPool operators: {string.Join(", ", _source)}";
+    }
+    
 }

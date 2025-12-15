@@ -69,6 +69,8 @@ public static class BoardLayoutExtensions
 
     public static void LogicPrettyPrint(this BoardLayout layout, char numberChar = '□', char operatorChar = '◇')
     {
+        Console.Write($"layout_str: {layout.LayoutStr}  \t");
+        Console.Write($"Size: {layout.BoardSize} \n");
         var explayouts = ExpressionLayoutBuilder.ExtractLayouts(layout, [5, 7]);
         var posToCellType = ExpressionLayoutGraphUtils.BuildPosToCellTypeMap(explayouts);
         

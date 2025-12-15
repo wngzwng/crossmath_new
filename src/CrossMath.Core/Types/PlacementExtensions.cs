@@ -40,8 +40,6 @@ public static class PlacementExtensions
         };
     }
     
-    
-    
     public static bool OverlapsWithSameDirection(this Placement p, Placement other)
     {
         /*

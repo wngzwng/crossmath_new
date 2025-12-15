@@ -24,36 +24,36 @@ public sealed class TqdmProgressPrinter
     /// <summary>
     /// 报告进度。与 tqdm 一致：Report(current, total)
     /// </summary>
-    public void Report(int current, int total)
-    {
-        if (total <= 0) return;
+        public void Report(int current, int total)
+        {
+            if (total <= 0) return;
 
-        double progress = current / (double)total;
-        int filled = (int)(_barWidth * progress);
-        int empty = _barWidth - filled;
+            double progress = current / (double)total;
+            int filled = (int)(_barWidth * progress);
+            int empty = _barWidth - filled;
 
-        double elapsed = _sw.Elapsed.TotalSeconds;
-        double itPerSec = current / Math.Max(elapsed, 1e-9);
-        double eta = (total - current) / Math.Max(itPerSec, 1e-9);
+            double elapsed = _sw.Elapsed.TotalSeconds;
+            double itPerSec = current / Math.Max(elapsed, 1e-9);
+            double eta = (total - current) / Math.Max(itPerSec, 1e-9);
 
-        string bar = new string('█', filled) + new string('░', empty);
+            string bar = new string('█', filled) + new string('░', empty < 0 ? 0 : empty);
 
-        string prefix = string.IsNullOrEmpty(_description) ? "" : $"{_description}: ";
+            string prefix = string.IsNullOrEmpty(_description) ? "" : $"{_description}: ";
 
-        string msg =
-            $"{prefix}{progress:0%}|{bar}| {current}/{total} " +
-            $"[{FormatTime(elapsed)}<{FormatTime(eta)}, {itPerSec:0.0}it/s]";
+            string msg =
+                $"{prefix}{progress:0%}|{bar}| {current}/{total} " +
+                $"[{FormatTime(elapsed)}<{FormatTime(eta)}, {itPerSec:0.0}it/s]";
 
-        // 清除上一行
-        Console.Write('\r' + new string(' ', _lastPrintedLength) + '\r');
+            // 清除上一行
+            Console.Write('\r' + new string(' ', _lastPrintedLength) + '\r');
 
-        Console.Write(msg);
+            Console.Write(msg);
 
-        _lastPrintedLength = msg.Length;
+            _lastPrintedLength = msg.Length;
 
-        if (current >= total)
-            Console.WriteLine();
-    }
+            if (current >= total)
+                Console.WriteLine();
+        }
 
     private static string FormatTime(double sec)
     {

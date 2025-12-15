@@ -58,4 +58,37 @@ public abstract class BaseExpression : IExpression
     public abstract bool Evaluate();
     public abstract bool IsFullyFilled { get; }
     public abstract IExpression Clone();
+    
+    // =============================
+    //  值语义相等性：按 Token 完全一致
+    // =============================
+
+    public bool Equals(IExpression? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        if (Length != other.Length) return false;
+
+        for (int i = 0; i < Length; i++)
+        {
+            if (this[i] != other[i])
+                return false;
+        }
+
+        return true;
+    }
+
+    public override bool Equals(object? obj)
+        => obj is IExpression other && Equals(other);
+
+    // =============================
+    //  Token-based HashCode（最优）
+    // =============================
+    public override int GetHashCode()
+    {
+        var hc = new HashCode();
+        for (int i = 0; i < Length; i++)
+            hc.Add(this[i]);
+        return hc.ToHashCode();
+    }
 }

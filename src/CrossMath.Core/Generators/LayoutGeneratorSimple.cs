@@ -20,6 +20,7 @@ public class LayoutGeneratorSimple
             
             if (context.StopPolicy.ShouldStop(count, context, layout))
             {
+                Console.WriteLine($"Stop: {initialCanvas.CanvasSize}, count: {count}");
                 yield break;
             }
         }

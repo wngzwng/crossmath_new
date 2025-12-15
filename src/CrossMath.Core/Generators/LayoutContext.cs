@@ -2,6 +2,7 @@ using CrossMath.Core.Generators.CanvasHashProvider;
 using CrossMath.Core.Generators.CompletionCheckers;
 using CrossMath.Core.Generators.ExpandControllers;
 using CrossMath.Core.Generators.PlacementGenerators;
+using CrossMath.Core.Generators.PlacementOrderingPolicies;
 using CrossMath.Core.Generators.SearchPolicies;
 using CrossMath.Core.Generators.StopPolicies;
 using CrossMath.Core.Types;
@@ -25,6 +26,7 @@ public record LayoutGenContext(
     IExpandController?   ExpandController   = null,
     ICanvasHashProvider? Hasher             = null,
     ISearchPolicy?       SearchPolicy       = null,
+    IPlacementOrderingPolicy? PlacementOrdering = null,
     
     // 改成可空
     CancellationToken? CancellationToken = null,
@@ -39,6 +41,9 @@ public record LayoutGenContext(
     public IExpandController   Cut  => ExpandController   ?? Default.Cut;
     public ICanvasHashProvider Hash => Hasher             ?? Default.Hash;
     public ISearchPolicy       Go   => SearchPolicy       ?? Default.Go;
+    public IPlacementOrderingPolicy Order => PlacementOrdering ?? Default.Order;
+    
+    public Stopper Stop { get; init; } = new();
 
     // ----------- 全局 Seen（支持外部注入 + Lazy 初始化） -----------
 
@@ -66,5 +71,8 @@ public record LayoutGenContext(
 
         public static readonly ISearchPolicy Go =
             new DepthFirstSearchPolicy();
+
+        public static readonly IPlacementOrderingPolicy Order =
+            new RandomPlacementOrderingPolicy();
     }
 }

@@ -17,7 +17,7 @@ public static class ExpressionLayoutGraphUtils
                     set = new HashSet<string>();
                     map[pos] = set;
                 }
-                set.Add(exprlayout.Id);
+                set.Add(exprlayout.Id.Value);
             }
         }
         return map;

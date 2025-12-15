@@ -26,6 +26,26 @@ public class CategoryQuotaStopPolicy<TK> : IStopPolicy
         _collected = ratioMap.Keys.ToDictionary(k => k, _ => 0);
     }
 
+    // public bool ShouldStop(int count, LayoutGenContext context, BoardLayout layout)
+    // {
+    //     TK key = _categorySelector(layout);
+    //
+    //     // 若不在期待类别中 → 拒绝
+    //     if (!_expected.ContainsKey(key))
+    //         return true;
+    //
+    //     int collected = _collected[key];
+    //     int expected = _expected[key];
+    //
+    //     // 若该类已满 → 拒绝
+    //     if (collected >= expected)
+    //         return true;
+    //
+    //     // 接受并计数
+    //     _collected[key]++;
+    //     return false;
+    // }
+    //
     public bool ShouldStop(int count, LayoutGenContext context, BoardLayout layout)
     {
         TK key = _categorySelector(layout);

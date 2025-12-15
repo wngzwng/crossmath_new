@@ -41,12 +41,7 @@ public static class CanvasExtensions
         if (allFilled.Count == 0)
             return (RowCol.Zero, RowCol.Zero);   // 或者你定义的 Empty/None
 
-        int minRow = allFilled.Min(p => p.Row);
-        int maxRow = allFilled.Max(p => p.Row);
-        int minCol = allFilled.Min(p => p.Col);
-        int maxCol = allFilled.Max(p => p.Col);
-
-        return (new RowCol(minRow, minCol), new RowCol(maxRow, maxCol));
+        return allFilled.GetMinMaxPosition();
     }
     
     

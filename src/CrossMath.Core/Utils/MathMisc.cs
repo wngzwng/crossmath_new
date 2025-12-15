@@ -172,8 +172,9 @@ public static class MathMisc
     }
     
     
-    public static double CalcSigma(List<int> nums)
+    public static double CalcSigma(IEnumerable<int> numbers)
     {
+        var nums = numbers.ToList();
         if (nums.Count == 0)
             return 0;
 

@@ -1,3 +1,4 @@
+using CrossMath.Core.Generators.Collectors;
 using CrossMath.Core.Models;
 
 namespace CrossMath.Core.Generators.StopPolicies;
@@ -15,6 +16,9 @@ public static class StopPolicyFactory
 
     public static CancellationTokenStopPolicy Canceled(CancellationToken token)
         => new CancellationTokenStopPolicy(token);
+
+    public static BucketCompletionStopPolicy<TK> BucketStop<TK>(BucketCounter<TK> counter) =>
+        new BucketCompletionStopPolicy<TK>(counter);
 
     public static CustomStopPolicy Custom(
         Func<int, LayoutGenContext, BoardLayout, bool> fn)

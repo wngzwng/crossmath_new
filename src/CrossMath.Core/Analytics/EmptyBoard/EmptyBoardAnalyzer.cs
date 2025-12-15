@@ -158,21 +158,17 @@ public  class EmptyBoardAnalyzer
     public Dictionary<string, int> GetOuter(BoardLayout layout)
     {
         var corners = GetCorners(layout.BoardSize);
+        var topLeft = corners[CornerNames.TopLeft] + RowCol.At(1, 1);
+        var topRight = corners[CornerNames.TopRight] + RowCol.At(1, -1);
+        var bottomLeft = corners[CornerNames.BottomLeft] + RowCol.At(-1, 1);
+        var bottomRight = corners[CornerNames.BottomRight] + RowCol.At(-1, -1);
     
         return new Dictionary<string, int>()
         {
-            [OuterNames.OuterTop] = CountValidCells(layout, 
-                corners[CornerNames.TopLeft] + RowCol.At(1, 1), 
-                corners[CornerNames.TopRight] + RowCol.At(1, -1)),
-            [OuterNames.OuterBottom] = CountValidCells(layout, 
-                corners[CornerNames.BottomLeft] + RowCol.At(-1, 1), 
-                corners[CornerNames.BottomRight] + RowCol.At(-1, -1)),
-            [OuterNames.OuterLeft] = CountValidCells(layout, 
-                corners[CornerNames.TopLeft] + RowCol.At(1, 1), 
-                corners[CornerNames.BottomLeft] + RowCol.At(1, -1)),
-            [OuterNames.OuterRight] = CountValidCells(layout, 
-                corners[CornerNames.TopRight] + RowCol.At(-1, 1), 
-                corners[CornerNames.BottomRight] + RowCol.At(-1, -1)),
+            [OuterNames.OuterTop] = CountValidCells(layout, topLeft, topRight),
+            [OuterNames.OuterBottom] = CountValidCells(layout, bottomLeft, bottomRight),
+            [OuterNames.OuterLeft] = CountValidCells(layout, topLeft, bottomLeft),
+            [OuterNames.OuterRight] = CountValidCells(layout, topRight, bottomRight),
         };
     }
     

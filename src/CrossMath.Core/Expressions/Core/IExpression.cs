@@ -1,5 +1,5 @@
 namespace CrossMath.Core.Expressions.Core;
-public interface IExpression
+public interface IExpression : IEquatable<IExpression>
 {
     /// <summary>
     /// 表达式的 Token 数量。

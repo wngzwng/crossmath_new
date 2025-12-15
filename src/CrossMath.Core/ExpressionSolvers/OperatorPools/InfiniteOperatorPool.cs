@@ -19,4 +19,9 @@ public sealed class InfiniteOperatorPool : IOperatorPool
     public bool Contains(OpType op) => _set.Contains(op);
     public int GetCount(OpType op) => _set.Contains(op) ? int.MaxValue : 0;
     public bool IsInfinite => true;
+
+    public override string ToString()
+    {
+       return  $"Infinite operators: {string.Join(", ", _set)}";
+    }
 }

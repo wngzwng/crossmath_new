@@ -109,3 +109,7 @@ _ReSharper*/
 # 用户自定义忽略规则（根据需要添加）
 # /CrossMath.Core.Tests/bin/
 # /CrossMath.Core.Tests/obj/
+
+*.xls
+*.csv
+*.xlsx

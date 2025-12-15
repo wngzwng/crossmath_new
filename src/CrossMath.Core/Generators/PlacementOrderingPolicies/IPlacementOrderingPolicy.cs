@@ -8,10 +8,10 @@ namespace CrossMath.Core.Generators.PlacementOrderingPolicies;
 /// 只负责对 Generate() 返回的 Placement 列表进行优先级排序
 /// 不过滤、不修改、纯函数、无副作用、可热插拔
 /// </summary>
-public interface IPlacementOrderingStrategy
+public interface IPlacementOrderingPolicy
 {
     IEnumerable<Placement> Order(
         IEnumerable<Placement> placements,
         ICanvas currentCanvas,
-        Random random);
+        Random? random = null);
 }

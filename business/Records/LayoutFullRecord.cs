@@ -1,3 +1,4 @@
+using business.Records.Columns;
 using CrossMath.Core.Analytics.EmptyBoard;
 
 namespace business.Records;
@@ -106,4 +107,78 @@ public record LayoutFullRecord
     /// 次外层右侧格子数
     /// </summary>
     public int OuterRight { get; set; }
+    
+   // ==========================================================
+    // ToDict —— 用于 CSV 写入
+    // ==========================================================
+    public Dictionary<string, object?> ToDict()
+    {
+        return new Dictionary<string, object?>
+        {
+            [LayoutFullRecordColumns.Id] = Id,
+            [LayoutFullRecordColumns.Size] = $"{Size.Height}x{Size.Width}",
+            [LayoutFullRecordColumns.LayoutInfo] = LayoutInfo,
+
+            [LayoutFullRecordColumns.FormulaCount] = FormulaCount,
+            [LayoutFullRecordColumns.Formula7Count] = Formula7Count,
+            [LayoutFullRecordColumns.RingCount] = RingCount,
+            [LayoutFullRecordColumns.Sigma] = Sigma,
+            [LayoutFullRecordColumns.CrossCount] = CrossCount,
+            [LayoutFullRecordColumns.FormulaCoverage] = FormulaCoverage,
+            [LayoutFullRecordColumns.FormulaZCount] = FormulaZCount,
+
+            [LayoutFullRecordColumns.OutermostTop] = OutermostTop,
+            [LayoutFullRecordColumns.OutermostBottom] = OutermostBottom,
+            [LayoutFullRecordColumns.OutermostLeft] = OutermostLeft,
+            [LayoutFullRecordColumns.OutermostRight] = OutermostRight,
+            [LayoutFullRecordColumns.SigmaOutermost] = SigmaOutermost,
+
+            [LayoutFullRecordColumns.OuterTop] = OuterTop,
+            [LayoutFullRecordColumns.OuterBottom] = OuterBottom,
+            [LayoutFullRecordColumns.OuterLeft] = OuterLeft,
+            [LayoutFullRecordColumns.OuterRight] = OuterRight,
+        };
+    }
+
+
+    // ==========================================================
+    // FromDict —— 用于 CSV 读取
+    // ==========================================================
+    public static LayoutFullRecord FromDict(IDictionary<string, object?> dict)
+    {
+        int GetInt(string key) => Convert.ToInt32(dict[key]);
+        double GetDouble(string key) => Convert.ToDouble(dict[key]);
+
+        // Size 解析（格式："11x11"）
+        var sizeStr = dict[LayoutFullRecordColumns.Size]?.ToString() ?? "0x0";
+        var parts = sizeStr.Split('x');
+        int h = int.Parse(parts[0]);
+        int w = int.Parse(parts[1]);
+
+        return new LayoutFullRecord
+        {
+            Id = GetInt(LayoutFullRecordColumns.Id),
+            Size = new Size(w, h),
+            LayoutInfo = dict[LayoutFullRecordColumns.LayoutInfo]?.ToString() ?? "",
+
+            FormulaCount = GetInt(LayoutFullRecordColumns.FormulaCount),
+            Formula7Count = GetInt(LayoutFullRecordColumns.Formula7Count),
+            RingCount = GetInt(LayoutFullRecordColumns.RingCount),
+            Sigma = GetDouble(LayoutFullRecordColumns.Sigma),
+            CrossCount = GetInt(LayoutFullRecordColumns.CrossCount),
+            FormulaCoverage = GetDouble(LayoutFullRecordColumns.FormulaCoverage),
+            FormulaZCount = GetInt(LayoutFullRecordColumns.FormulaZCount),
+
+            OutermostTop = GetInt(LayoutFullRecordColumns.OutermostTop),
+            OutermostBottom = GetInt(LayoutFullRecordColumns.OutermostBottom),
+            OutermostLeft = GetInt(LayoutFullRecordColumns.OutermostLeft),
+            OutermostRight = GetInt(LayoutFullRecordColumns.OutermostRight),
+            SigmaOutermost = GetDouble(LayoutFullRecordColumns.SigmaOutermost),
+
+            OuterTop = GetInt(LayoutFullRecordColumns.OuterTop),
+            OuterBottom = GetInt(LayoutFullRecordColumns.OuterBottom),
+            OuterLeft = GetInt(LayoutFullRecordColumns.OuterLeft),
+            OuterRight = GetInt(LayoutFullRecordColumns.OuterRight),
+        };
+    }
 }

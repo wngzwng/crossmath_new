@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrossMath.Core.Tests", "tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "business", "business\business.csproj", "{6C83CF78-E54C-4760-83CC-94A5556A6DB9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrossMath.CLI", "src\CrossMath.CLI\CrossMath.CLI.csproj", "{369EA79E-1690-45E9-A82C-434C1924E32C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,18 @@ Global
 		{6C83CF78-E54C-4760-83CC-94A5556A6DB9}.Release|x64.Build.0 = Release|Any CPU
 		{6C83CF78-E54C-4760-83CC-94A5556A6DB9}.Release|x86.ActiveCfg = Release|Any CPU
 		{6C83CF78-E54C-4760-83CC-94A5556A6DB9}.Release|x86.Build.0 = Release|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Debug|x64.Build.0 = Debug|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Debug|x86.Build.0 = Debug|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Release|x64.ActiveCfg = Release|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Release|x64.Build.0 = Release|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Release|x86.ActiveCfg = Release|Any CPU
+		{369EA79E-1690-45E9-A82C-434C1924E32C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -66,5 +80,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{B74F410E-F89C-4EBC-8ECC-7E3EF2912CBC} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{DEDB50F1-E87A-4EB8-92A6-59D85808F8D3} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{369EA79E-1690-45E9-A82C-434C1924E32C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

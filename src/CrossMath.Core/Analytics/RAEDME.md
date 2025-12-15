@@ -41,3 +41,26 @@
 - ？卡点数。 PainPointCount
 - ？首个卡点位置。 FirstPainPointPos
 - ？首个卡点百分比 FirstPainPointPercentage
+
+
+
+
+
+
+需要计算的字段：list[Filed]
+
+计算的映射
+filed，computer
+
+读取Dict
+获取需要的字段：
+BoardLayout layout = build（orgindata， filedadapt）
+
+需要计算的字段：
+emptyscheme
+
+
+
+
+
+

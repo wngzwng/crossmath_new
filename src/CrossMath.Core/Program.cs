@@ -21,6 +21,7 @@ using CrossMath.Core.Generators.PlacementGenerators;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
 using CrossMath.Core.Utils;
+using CrossMath.Core.Utils.Progress;
 using Microsoft.Extensions.Logging;
 
 Console.WriteLine("Hello, World!");
@@ -83,8 +84,8 @@ Console.WriteLine("Hello, World!");
 
 // Console.WriteLine(3.0 / 4.0 * 4.0 == 3.0);
 
-// var layout = "001010111110010101000100111110001001010100011111101111110100000100111110001001000000010011111000100";
-// var boardLayout = new BoardLayout(layout, width: 11, height: 9);
+// var layout = "0010111111100101010101111110111111010101010111111011111100000000001111101000000101010000001111100000010101000011111011111";
+// var boardLayout = new BoardLayout(layout, width: 11, height: 11);
 //
 // var provider = ExpressionSolverProvider.CreateDefault();
 // var solvedCtx = new ExpressionSolveContext()
@@ -94,15 +95,15 @@ Console.WriteLine("Hello, World!");
 //     Validator = new ExpressionValidator(ValidationMode.FullPoolCheck)
 // };
 // //
-// var filler = new LayoutFiller(provider)
+// var filter = new LayoutFiller(provider)
 //     .Setup(solvedCtx)
 //     .WithSolutionSampleLimit(20)
 //     .WithFirstFillMode(FirstFillSelectMode.Random);
-
-// fillter.SetSolutionSampleLimit(100);
-// if (fillter.TryFill(boardLayout, 100, out var board, out var successIndex))
+//
+// if (filter.TryFill(boardLayout, 1000, [5, 7], out var board, out var successIndex))
 // {
 //     board!.PrettyPrint();
+//     Console.WriteLine($"success: {successIndex}");
 // }
 
 
@@ -220,9 +221,20 @@ Console.WriteLine("Hello, World!");
 // }
 
 
+// var level = "7502fb03fa05fbfbfc02fb02fa04fbfafa06fc05fa01fa0afc07fa03";
+// var layout = "11111101011111110101111111000011111";
+// var borad = BoardDataCodec.Decode(level, layout);
+// borad.PrettyPrint();
+// var boardLayout = new BoardLayout(layout, width: 11, height: 11);
+// var brief = EmptyBoardAnalyzer.GetInfo(boardLayout);
+// boardLayout.LogicPrettyPrint();
+// Console.WriteLine(brief);   
 
-var layout = "1111101000010101010000111110111111010101000110101010001000010100010011111000100100000000001000000000010000000000100000000";
-var boardLayout = new BoardLayout(layout, width: 11, height: 11);
-var brief = EmptyBoardAnalyzer.GetInfo(boardLayout);
-boardLayout.LogicPrettyPrint();
-Console.WriteLine(brief);   
+using (var tqdm = ProgressBarUtils.Create(100, "进度条测试"))
+{
+    foreach (var i in Enumerable.Range(0, 100))
+    {
+        Thread.Sleep(10);
+        tqdm.Update();            
+    }
+}

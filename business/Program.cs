@@ -1,121 +1,79 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using business.Converters;
+using System.CommandLine;
+using business;
 using business.Csv;
-using business.Records;
-using business.utils;
-using business.works;
-using business.works.Layout;
-using CrossMath.Core.Analytics.EmptyBoard;
-using CrossMath.Core.Expressions.Layout;
-using CrossMath.Core.Generators.PlacementGenerators;
-using CrossMath.Core.Generators.StopPolicies;
+using business.Scripts;
+using CrossMath.Core.Analytics.FinalBoard;
+using CrossMath.Core.Codec;
 using CrossMath.Core.Models;
-using CrossMath.Core.Types;
 
-Console.WriteLine("Hello, World!");
-
-//  使用 JobBatchFactory 创建 job
-
-
-
-
-var stopPolicy = StopPolicyFactory.CategoryQuota(
-    categorySelector: boardLayout =>
-        ExpressionLayoutBuilder.ExtractLayouts(boardLayout, [5, 7])
-            .Count(exprLayout => exprLayout.Length == 7),
-
-    ratioMap: new Dictionary<int, double>
-    {
-        [1] = 0.8,
-        [2] = 0.2,
-    },
-
-    totalCount: 3000
-);
-
-var tqdm = new TqdmProgressPrinter();
-var targetSize = new Size(Height: 9, Width: 7);
-var job  = new LayoutGenerationJob()
-{
-    CanvasSize = targetSize,
-    MinFormulaCount = 5,
-    MaxFormulaCount = 9,
-    MaxSigma = 6.0,
-    PlacementGenerator = new PlacementGenerator()
-        .WithPlaceStrategies([(5, CrossType.Number), (7, CrossType.Number)])
-        .StopAtFirstMatch(false),
-    
-    InitPlacements = InitialPlacementGenerator.BuildPlacement([
-        (targetSize, 5, CrossType.Number),
-        (targetSize, 7, CrossType.Number),
-    ]),
-    TargetCount = 30000,
-    ProgressCallback = (cur, total) => tqdm.Report(cur, total),
-    StopPolicy = stopPolicy,
-};
-
-LayoutGenerationPipeline.RunAndExport(job, "Generator Layouts 9x7");
-
-
-
-// var stopPolicy = StopPolicyFactory.CategoryQuota(
-//     categorySelector: boardLayout =>
-//         ExpressionLayoutBuilder.ExtractLayouts(boardLayout, [5, 7])
-//             .Count(exprLayout => exprLayout.Length == 7),
+// RootCommand root = new("Final board generator");
 //
-//     ratioMap: new Dictionary<int, double>
-//     {
-//         [1] = 0.8,
-//         [2] = 0.2,
-//     },
-//
-//     totalCount: 3000
-// );
-//
-// var outputDir = CsvConfig.ResolvePath("full");
-// Directory.CreateDirectory(outputDir);
-//
-// var jobs = LayoutJobBatchFactory.CreateJobsFromSpecs(targetCount: 30000, maxSigma: 6.0, stopPolicy);
-// foreach (var job in jobs)
+// // 选项
+// var inputOption = new Option<string?>("--input", "输入文件路径（文件模式）");
+// var inputDirOption = new Option<string?>("--input-dir", "输入目录路径（目录模式）")
 // {
-//     var size = job.CanvasSize;
-//     var layoutRecords = LayoutGenerationPipeline.Run(job, $"Generator Layouts {size.Height}*{size.Width}: ");
-//     var layoutFullRecords = layoutRecords.Select(LayoutFullRecordFactory.FromLayoutRecord).ToList();
+//     DefaultValueFactory = _ => $"{Path.Combine(CsvConfig.RootDirectory, "split")}"
+// };
+// var outputOption = new Option<string?>("--output", "输出文件路径（文件模式）");
+// var outputDirOption = new Option<string?>("--output-dir", "输出目录路径（目录模式）")
+// {
+//     DefaultValueFactory = _ => $"{Path.Combine(CsvConfig.RootDirectory, "split_output")}"
+// };
+//
+// var limitOption = new Option<int?>("--limit")
+// {
+//     Description = "处理上限",
+//     DefaultValueFactory = _ => 5
+// };
+//
+// var parallelOption = new Option<int?>("--parallel", "并行数")
+// {
+//     DefaultValueFactory = _ => 5
+// };
+//
+// // 注册选项
+// root.Options.Add(inputOption);
+// root.Options.Add(inputDirOption);
+// root.Options.Add(outputOption);
+// root.Options.Add(outputDirOption);
+// root.Options.Add(limitOption);
+// root.Options.Add(parallelOption);
+//
+// // 设置执行行为（官方写法）
+// root.SetAction(async parseResult =>
+// {
+//     string? input     = parseResult.GetValue(inputOption);
+//     string? inputDir  = parseResult.GetValue(inputDirOption);
+//     string? output    = parseResult.GetValue(outputOption);
+//     string? outputDir = parseResult.GetValue(outputDirOption);
+//     int? limit         = parseResult.GetValue(limitOption);
+//     int? parallel     = parseResult.GetValue(parallelOption);
 //     
-//     CsvUtils.Write(Path.Combine(outputDir, $"layouts_{job.CanvasSize.Height}x{job.CanvasSize.Width}.csv"), layoutFullRecords);
-// }
+//     await FinalBoardCmd.Run(input, inputDir, output, outputDir, limit, parallel);
+// });
+//
+// // 运行（官方写法）
+// return root.Parse(args).Invoke();
 
+/*
+./bin/Debug/net9.0/business --input /Users/admin/RiderProjects/PuzzrossMath/config/保留面板.csv --output /Users/admin/RiderProjects/Puzzle/CrossMath/bu
+   Math/business/Data/fillBoard.csv --limit 3
+   
+   
+   # 1. 最推荐：带进度条 + 可中断恢复 + 输出文件名加 .processed.csv 后缀
+find /Users/admin/RiderProjects/Puzzle/CrossMath/business/Data/split -maxdepth 1 -name "*.csv" -type f | \
+parallel --eta --bar --joblog log.txt --resume --retry-failed -j 100% \
+     ./business --input {} --output /Users/admin/RiderProjects/Puzzle/CrossMath/business/Data/split_output/{/.}.processed.csv --limit 5
+   */
 
+// var intput = "/Users/admin/Desktop/split/crossmath_filledBoards_1210.csv";
+// var output = Path.Combine(CsvConfig.RootDirectory, "filledBoards_1211.csv");
+// Scripts_12_09.Run(intput, output); 
 
+var board = BoardDataCodec.Decode("750d0b05fdfefb02fd0bfa16fdfbfa01fd1bfa1bfafa1a1c", "10101101011111110101111111010010100");
+board.PrettyPrint();
 
-// var inputDir = CsvConfig.RootDirectory;
-// var outputDir = CsvConfig.ResolvePath("data/full");
-//
-// // 创建输出目录（若不存在）
-// Directory.CreateDirectory(outputDir);
-//
-// // 获取所有 CSV 输入文件
-// var files = FileUtils.GetFiles(inputDir, ".csv").ToList();
-//
-// foreach (var file in files)
-// {
-//     var fileName = Path.GetFileNameWithoutExtension(file);
-//     var outputFile = Path.Combine(outputDir, $"{fileName}_full.csv");
-//
-//     // 运行转换
-//     CsvTransform.Transform<LayoutRecord, LayoutFullRecord>(
-//         file,
-//         outputFile,
-//         (layoutRecord) =>
-//         {
-//             var id = layoutRecord.Id;
-//             var boardLayout = new BoardLayout(layoutRecord.LayoutStr, layoutRecord.LayoutSize);
-//             var fullRecord = EmptyBoardAnalyzer.GetInfo(boardLayout).ToFullRecord();
-//             fullRecord.Id = id;
-//             return fullRecord;
-//         }
-//     );
-//
-//     Console.WriteLine($"Converted: {file} → {outputFile}");
-// }
+var analyzer = new FinalBoardAnalyzer();
+Console.WriteLine(analyzer.CountOneTwoMinOperatorInExp7(board));

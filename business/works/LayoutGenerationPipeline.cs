@@ -2,6 +2,7 @@ using business.Converters;
 using business.Csv;
 using business.Records;
 using business.utils;
+using CrossMath.Core.Models;
 
 namespace business.works;
 
@@ -48,7 +49,11 @@ public static class LayoutGenerationPipeline
         int id = 1;
 
         foreach (var layout in runner.Run(job))
+        {
+            Console.WriteLine($"\n {job.counter?.ProgressString}");
+            layout.LogicPrettyPrint();
             records.Add(LayoutRecordFactory.FromBoardLayout(id++, layout));
+        }
 
         return records;
     }

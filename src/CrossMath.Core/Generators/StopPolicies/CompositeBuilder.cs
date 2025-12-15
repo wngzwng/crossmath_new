@@ -1,3 +1,4 @@
+using CrossMath.Core.Generators.Collectors;
 using CrossMath.Core.Models;
 
 namespace CrossMath.Core.Generators.StopPolicies;
@@ -27,6 +28,12 @@ public class CompositeBuilder
     public CompositeBuilder Canceled(CancellationToken token)
     {
         _policy.Add(new CancellationTokenStopPolicy(token));
+        return this;
+    }
+
+    public CompositeBuilder Bucket<TK>(BucketCounter<TK> counter)
+    {
+        _policy.Add(new BucketCompletionStopPolicy<TK>(counter));
         return this;
     }
 
