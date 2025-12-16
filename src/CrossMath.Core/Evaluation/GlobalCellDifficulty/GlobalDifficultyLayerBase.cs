@@ -1,6 +1,5 @@
 using System.Reflection;
 using CrossMath.Core.CandidateDomains;
-using CrossMath.Core.Expressions.Core;
 using CrossMath.Core.Expressions.Layout;
 using CrossMath.Core.ExpressionSolvers;
 using CrossMath.Core.ExpressionSolvers.ExpressionValidators;
@@ -11,7 +10,7 @@ using CrossMath.Core.Models;
 using CrossMath.Core.Types;
 using CrossMath.Core.Utils;
 
-namespace CrossMath.Core.Evaluation;
+namespace CrossMath.Core.Evaluation.GlobalCellDifficulty;
 
 public abstract class GlobalDifficultyLayerBase : IGlobalDifficultyLayer
 {

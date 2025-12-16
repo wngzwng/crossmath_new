@@ -1,4 +1,3 @@
-using CrossMath.Core.CandidateDomains;
 using CrossMath.Core.Expressions.Layout;
 using CrossMath.Core.ExpressionSolvers;
 using CrossMath.Core.ExpressionSolvers.ExpressionValidators;
@@ -6,9 +5,9 @@ using CrossMath.Core.ExpressionSolvers.NumberPools;
 using CrossMath.Core.ExpressionSolvers.OperatorPools;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
-using CrossMath.Core.Utils;
 
-namespace CrossMath.Core.Evaluation.GobalCellDifficulty;
+namespace CrossMath.Core.Evaluation.GlobalCellDifficulty;
+
 
 public class GlobalDifficultyLayerOne: GlobalDifficultyLayerBase
 {

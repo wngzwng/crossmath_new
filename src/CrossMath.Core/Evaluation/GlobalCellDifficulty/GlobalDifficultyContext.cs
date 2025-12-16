@@ -3,7 +3,7 @@ using CrossMath.Core.ExpressionSolvers.SolverProviders;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
 
-namespace CrossMath.Core.Evaluation;
+namespace CrossMath.Core.Evaluation.GlobalCellDifficulty;
 
 public sealed class GlobalDifficultyContext
 {
@@ -19,7 +19,7 @@ public sealed class GlobalDifficultyContext
         ExpressionSolverProvider solver)
     {
         Manager = manager;
-        Board = board;                   // 注意：这里通常要 Clone 一份，避免影响原盘
+        Board = board.Clone();                   // 注意：这里通常要 Clone 一份，避免影响原盘
         Solver = solver;
         CurrentDifficulty = 0;
         DifficultyRecord = new Dictionary<RowCol, int>();

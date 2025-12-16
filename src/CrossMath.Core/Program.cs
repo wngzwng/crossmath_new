@@ -2,9 +2,11 @@
 
 using CrossMath.Core.Analytics.EmptyBoard;
 using CrossMath.Core.BoardSolvers;
+using CrossMath.Core.CandidateDomains;
 using CrossMath.Core.Codec;
 using CrossMath.Core.Evaluation;
-using CrossMath.Core.Evaluation.GobalCellDifficulty;
+using CrossMath.Core.Evaluation.GlobalCellDifficulty;
+using CrossMath.Core.Evaluation.LocalDifficulty;
 using CrossMath.Core.Expressions.Core;
 using CrossMath.Core.Expressions.Layout;
 using CrossMath.Core.ExpressionSolvers;
@@ -231,15 +233,37 @@ var borad = BoardDataCodec.Decode(level, layout);
 borad.PrettyPrint();
 
 // var holeCountType = RandomHoleCountTypeSelector.GetRandomByDefaultWeight();
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    // builder.AddConsole();  // 添加控制台日志提供者
+    builder.AddDebug();   // 添加调试输出日志提供者
+    // 可以添加其他日志提供者，如文件日志等
+});
+var globalEvaluator = GlobalDifficultyEvaluator.CreateDefault(loggerFactory);
+var localEvalutor = LocalDifficultyEvaluator.CreatorDefault(loggerFactory);
+
 var holeCountType = HoleCountType.FormulaCountMinus1;
 var ctx = HollowOutContext.Create(
     borad, holeCountType, 
-    HollowOutStrategyFactory.CreateStrategy(HollowOutStrategyType.SmallNumberPriority, true), 
+    HollowOutStrategyFactory.CreateStrategy(HollowOutStrategyType.NonFocusPriority), 
     DefaultHoleValidator.Create());
 var holeDigger = new HoleDigger();
 if (holeDigger.TryHollowOut2(ctx, out var resultBoard))
 {
     resultBoard.PrettyPrint();
+    var result = globalEvaluator.Evaluate(GlobalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
+    Console.WriteLine("global result");
+    foreach (var pair in result)
+    {
+        Console.WriteLine($"{pair.Key},{pair.Value}");
+    }
+    
+    var localResult = localEvalutor.Evaluate(LocalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
+    Console.WriteLine("localResult");
+    foreach (var pair in localResult)
+    {
+        Console.WriteLine($"{pair.Key},{pair.Value}");
+    }
 }
 // using (var tqdm = ProgressBarUtils.Create(100, "进度条测试"))
 // {

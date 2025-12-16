@@ -3,7 +3,7 @@ using CrossMath.Core.ExpressionSolvers.SolverProviders;
 using CrossMath.Core.Models;
 using CrossMath.Core.Types;
 using Microsoft.Extensions.Logging;
-namespace CrossMath.Core.Evaluation;
+namespace CrossMath.Core.Evaluation.GlobalCellDifficulty;
 
     
 public sealed class GlobalDifficultyEvaluator
@@ -17,6 +17,18 @@ public sealed class GlobalDifficultyEvaluator
     {
         _layers = layers.OrderBy(l => l.Difficulty).ToList();
         _logger = loggerFactory.CreateLogger<GlobalDifficultyEvaluator>();
+    }
+
+    public static GlobalDifficultyEvaluator CreateDefault(ILoggerFactory loggerFactory)
+    {
+        return new GlobalDifficultyEvaluator(
+            [
+                new GlobalDifficultyLayerOne(),
+                new GlobalDifficultyLayerTwo(),
+                new GlobalDifficultyLayerThree()
+            ],
+            loggerFactory
+        );
     }
     
     public Dictionary<RowCol, int> Evaluate(GlobalDifficultyContext initialContext)
@@ -47,7 +59,7 @@ public sealed class GlobalDifficultyEvaluator
         throw new InvalidOperationException("无法评级");
     }
 
-    public GlobalDifficultyContext CreateContext(BoardData board)
+    public static GlobalDifficultyContext CreateContext(BoardData board)
     {
         return new GlobalDifficultyContext(
             manager: new CandidateDomainManager<RowCol, string>(),

@@ -8,7 +8,7 @@ using CrossMath.Core.Models;
 using CrossMath.Core.Types;
 using CrossMath.Core.Utils;
 
-namespace CrossMath.Core.Evaluation.GobalCellDifficulty;
+namespace CrossMath.Core.Evaluation.GlobalCellDifficulty;
 
 public class GlobalDifficultyLayerTwo: GlobalDifficultyLayerBase
 {

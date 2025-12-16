@@ -1,5 +1,4 @@
-namespace CrossMath.Core.Evaluation;
-
+namespace CrossMath.Core.Evaluation.GlobalCellDifficulty;
 public interface IGlobalDifficultyLayer
 {
     int Difficulty { get; }  

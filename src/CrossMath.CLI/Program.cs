@@ -10,6 +10,7 @@ public static class Program
         // 注册子命令
         root.Add(Framework.Docs.DocsCommand.Build(root));
         root.Add(new Commands.BartestCommand().Build());
+        root.Add(new DiagramDirective());
         return await root.Parse(args).InvokeAsync();
     }
 }
