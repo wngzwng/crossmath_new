@@ -71,7 +71,7 @@ public sealed class HoleDigger
         return successFinal;
     }
     
-    public bool TryHollowOut2(HollowOutContext ctx, out BoardData? resultBoard)
+    public bool TryHollowOut2(HollowOutContext ctx, out BoardData resultBoard)
     {
         if (ctx == null) throw new ArgumentNullException(nameof(ctx));
         if (ctx.HollowOutStrategy == null) throw new InvalidOperationException("HollowOutStrategy 未设置");

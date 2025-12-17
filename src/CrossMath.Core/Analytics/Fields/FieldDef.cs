@@ -96,4 +96,73 @@ public static class FieldDef
 
     public static readonly Field<bool> HasOneTwoMixOperatorInExp7 =
         new("has_one_two_mix_operator_in_exp7");
+    
+    
+    // ============================================================
+    // InitBoard (Initial Puzzle / Difficulty Analysis)
+    // ============================================================
+
+    // ===== 基础信息 =====
+    public static readonly Field<string> StartInfo =
+        new("start_info");
+    
+    public static readonly Field<string> Answer =
+        new("answer");
+    
+    public static readonly Field<int> EmptyCellCount =
+        new("cell_num_empty");
+    
+    // ===== 空格友好度 =====
+    public static readonly Field<double> EmptyFriendly =
+        new("empty_friendly");
+    
+    // 难度层级
+    public static readonly Field<string> Difficulty =
+        new("difficulty");
+    
+    // ===== 难度区间 =====
+    public static readonly Field<double> MinDifficulty =
+        new("min_diff");
+
+    public static readonly Field<double> MaxDifficulty =
+        new("max_diff");
+
+    public static readonly Field<double> TotalDifficulty =
+        new("total_diff");
+
+    public static readonly Field<double> StartStaticDifficulty =
+        new("start_diff");
+
+
+    /// <summary>
+    /// 最高权重解题 1次
+    /// </summary>
+    // ===== 卡点 / Path 分析 =====
+    public static readonly Field<int> StuckNum =
+        new("stuck_num");
+
+    /// <summary>
+    /// 所有卡点位置（如 "3,7,12" 或 JSON）
+    /// </summary>
+    public static readonly Field<string> StuckPoints =
+        new("stucks_point");
+
+    public static readonly Field<int?> FirstStuckPoint =
+        new("first_stuck_point");
+
+    public static readonly Field<double?> FirstStuckPointPercent =
+        new("first_stuck_point_percent");
+
+    
+    public static readonly Field<string> MaxWeightCoordinates =
+        new("max_weight_coordinates");
+
+    public static readonly Field<double> MaxWeightScore =
+        new("max_weight_score");
+  
+    
+    // ===== 解题路径 & 随机评估  多次=====
+    public static readonly Field<double> RandomScore =
+        new("rand_score");
+    
 }

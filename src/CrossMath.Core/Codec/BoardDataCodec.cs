@@ -188,6 +188,7 @@ public static class BoardDataCodec
 
 
     public static BoardData Decode(string layout, int width, int height)
+    
     {
         if (string.IsNullOrWhiteSpace(layout))
             throw new ArgumentException("布局不能为空");
