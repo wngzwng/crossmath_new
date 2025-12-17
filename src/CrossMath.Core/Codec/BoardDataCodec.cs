@@ -6,6 +6,8 @@ namespace CrossMath.Core.Codec;
 
 public static class BoardDataCodec
 {
+    // 初级盘中，答案与原数据使用 : 作为分隔  
+    
     /// <summary>编码 BoardData 为 (hex串, layout串)</summary>
     public static (string boardHex, string layout) Encode(BoardData b)
     {

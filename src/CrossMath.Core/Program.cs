@@ -1,11 +1,16 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Diagnostics;
 using CrossMath.Core.Analytics.EmptyBoard;
 using CrossMath.Core.BoardSolvers;
 using CrossMath.Core.CandidateDomains;
 using CrossMath.Core.Codec;
 using CrossMath.Core.Evaluation;
 using CrossMath.Core.Evaluation.GlobalCellDifficulty;
+using CrossMath.Core.Evaluation.LevelDifficulty;
+using CrossMath.Core.Evaluation.LevelDifficulty.ScoreStrategies;
+using CrossMath.Core.Evaluation.LevelDifficulty.SelectionPolicies;
+using CrossMath.Core.Evaluation.LevelDifficulty.WeightCalculators;
 using CrossMath.Core.Evaluation.LocalDifficulty;
 using CrossMath.Core.Expressions.Core;
 using CrossMath.Core.Expressions.Layout;
@@ -240,7 +245,13 @@ using var loggerFactory = LoggerFactory.Create(builder =>
     // 可以添加其他日志提供者，如文件日志等
 });
 var globalEvaluator = GlobalDifficultyEvaluator.CreateDefault(loggerFactory);
-var localEvalutor = LocalDifficultyEvaluator.CreatorDefault(loggerFactory);
+var localEvaluator = LocalDifficultyEvaluator.CreatorDefault(loggerFactory);
+var levelEvaluator = LevelDifficultyEvaluator.Create()
+    .WithLocalEvaluator(localEvaluator)
+    .WithScoreStrategy(new DefaultScoreStrategy())
+    .WithWeightCalculator(new ExponentialWeightCalculator())
+    .WithSelectionPolicy(new WeightedRandomSelectionPolicy())
+    .Build();
 
 var holeCountType = HoleCountType.FormulaCountMinus1;
 var ctx = HollowOutContext.Create(
@@ -258,12 +269,20 @@ if (holeDigger.TryHollowOut2(ctx, out var resultBoard))
         Console.WriteLine($"{pair.Key},{pair.Value}");
     }
     
-    var localResult = localEvalutor.Evaluate(LocalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
+    var localResult = localEvaluator.Evaluate(LocalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
     Console.WriteLine("localResult");
     foreach (var pair in localResult)
     {
         Console.WriteLine($"{pair.Key},{pair.Value}");
     }
+    
+    var sw = Stopwatch.StartNew();
+    var levelScore = levelEvaluator.Evaluate(LevelDifficultyEvaluator.CreateContext(resultBoard), 1000);
+    sw.Stop();
+
+    Console.WriteLine(
+        $"levelScore: {levelScore}, elapsed: {sw.Elapsed.TotalSeconds:F2} s"
+    );
 }
 // using (var tqdm = ProgressBarUtils.Create(100, "进度条测试"))
 // {
