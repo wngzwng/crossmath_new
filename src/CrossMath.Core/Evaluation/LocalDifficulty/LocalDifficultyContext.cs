@@ -1,6 +1,7 @@
 using CrossMath.Core.Expressions.Layout;
 using CrossMath.Core.ExpressionSolvers.SolverProviders;
 using CrossMath.Core.Models;
+using CrossMath.Core.Types;
 
 namespace CrossMath.Core.Evaluation.LocalDifficulty;
 
@@ -15,6 +16,8 @@ public sealed class LocalDifficultyContext
     public IReadOnlyList<ExpressionLayout> Layouts { get; }
     public ExpressionSolverProvider Solver { get; }
     public LocalEvaluationResult Result { get; } = new();
+    
+    public Dictionary<RowCol, HashSet<string>> CandidateMapAtCell { get; } = new ();
 
     public LocalDifficultyContext(BoardData board, ExpressionSolverProvider solver)
     {
@@ -26,5 +29,7 @@ public sealed class LocalDifficultyContext
     public void Reset()
     {
         Result.Reset();
+        CandidateMapAtCell.Clear();
     }
+
 }

@@ -13,5 +13,9 @@ public class LocalDifficultyThree : LocalDifficultyBase
         var manager = BuildCandidateManager(ctx, ctx.Layouts);
         var cspResult = _csp.RunPropagation(manager, ctx.Board.PossibleAnswers);
         AnalyzeCandidateManager(ctx, cspResult.ExpressionCandidates);
+
+        var variableDomains = cspResult.VariableDomains;
+        foreach (var (k, v) in variableDomains)
+            ctx.CandidateMapAtCell[k] = v;
     }
 }

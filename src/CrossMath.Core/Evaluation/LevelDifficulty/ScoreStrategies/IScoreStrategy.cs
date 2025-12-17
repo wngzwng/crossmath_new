@@ -7,5 +7,7 @@ public interface IScoreStrategy
     IReadOnlyDictionary<RowCol, double> Score(
         LevelDifficultyContext ctx,
         RowCol lastCoord,
-        IReadOnlyDictionary<RowCol, int> localDifficulty);
+        IReadOnlyDictionary<RowCol, int> localDifficulty,
+        IReadOnlyDictionary<RowCol, HashSet<string>> candidateMapAtCell
+        );
 }

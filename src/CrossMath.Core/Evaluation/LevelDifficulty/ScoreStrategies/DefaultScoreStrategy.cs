@@ -62,17 +62,15 @@ public sealed class DefaultScoreStrategy : IScoreStrategy
     public IReadOnlyDictionary<RowCol, double> Score(
         LevelDifficultyContext ctx,
         RowCol lastCoord,
-        IReadOnlyDictionary<RowCol, int> localDifficulty)
+        IReadOnlyDictionary<RowCol, int> localDifficulty,
+        IReadOnlyDictionary<RowCol, HashSet<string>> candidateMapAtCell
+        )
     {
         // 当前棋盘所有候选数中，不同数字的个数
         int candidateUniqueCount =
             ctx.WorkingBoard.PossibleAnswers
                 .Distinct()
                 .Count();
-        
-        // 当前棋盘候选数字的总数量（包含重复）
-        int candidateCount =
-            ctx.WorkingBoard.PossibleAnswers.Count;
 
         // average_number_of_digits：
         // 当前棋盘所有候选数字的平均位数
@@ -99,7 +97,11 @@ public sealed class DefaultScoreStrategy : IScoreStrategy
                     candidateUniqueCount,
                     difficulty,
                     averageNumberOfDigits,
-                    candidateCount);
+                    candidateMapAtCell.TryGetValue(coord, out var candidates)
+                        ? candidates.Count
+                        : 0
+                );
+                    
 
             // 3️⃣ 线性组合得到最终 score
             double score =
@@ -141,13 +143,13 @@ public sealed class DefaultScoreStrategy : IScoreStrategy
         int candidateUniqueCount,
         int difficulty,
         double averageNumberOfDigits,
-        int candidateCount)
+        int candidateCountAtCell)
     {
         if (difficulty >= 4)
         {
             return candidateUniqueCount
                  * difficulty
-                 * (candidateCount - 1)
+                 * (candidateCountAtCell - 1)
                  * averageNumberOfDigits;
         }
 

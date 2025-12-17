@@ -232,8 +232,11 @@ Console.WriteLine("Hello, World!");
 // }
 
 
-var level = "bb67fb04fb04fa6ffbfbfc11fb48fa5914fafafa784cfb0ffa5b0afbfb2720fb09fa2901fbfbfafbfb09fb03fa0c18fb3bfa53fafafafa302cfb38fa645e";
-var layout = "0011111110000101000100001111101000010100010000101111101000000100011000111110110001010101111110111111000100010110001111101";
+// var level = "bb67fb04fb04fa6ffbfbfc11fb48fa5914fafafa784cfb0ffa5b0afbfb2720fb09fa2901fbfbfafbfb09fb03fa0c18fb3bfa53fafafafa302cfb38fa645e";
+// var layout = "0011111110000101000100001111101000010100010000101111101000000100011000111110110001010101111110111111000100010110001111101";
+
+var level = "bb00fc00fa00fcfb0000fb00fa00fafafe1700fd00fa00fa00fe00fa00fc00fa01fd00fa00261c0a0f12182a2201222a012a1c0e0e";
+var layout = "0011111000000100010000001011111000010001010000100011111000000001000000111110000001000000000010000000000100000011111000000";
 var borad = BoardDataCodec.Decode(level, layout);
 borad.PrettyPrint();
 
@@ -245,7 +248,7 @@ using var loggerFactory = LoggerFactory.Create(builder =>
     // 可以添加其他日志提供者，如文件日志等
 });
 var globalEvaluator = GlobalDifficultyEvaluator.CreateDefault(loggerFactory);
-var localEvaluator = LocalDifficultyEvaluator.CreatorDefault(loggerFactory);
+var localEvaluator = LocalDifficultyEvaluator.CreateDefault(loggerFactory);
 var levelEvaluator = LevelDifficultyEvaluator.Create()
     .WithLocalEvaluator(localEvaluator)
     .WithScoreStrategy(new DefaultScoreStrategy())
@@ -259,31 +262,35 @@ var ctx = HollowOutContext.Create(
     HollowOutStrategyFactory.CreateStrategy(HollowOutStrategyType.NonFocusPriority), 
     DefaultHoleValidator.Create());
 var holeDigger = new HoleDigger();
-if (holeDigger.TryHollowOut2(ctx, out var resultBoard))
-{
-    resultBoard.PrettyPrint();
-    var result = globalEvaluator.Evaluate(GlobalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
-    Console.WriteLine("global result");
-    foreach (var pair in result)
-    {
-        Console.WriteLine($"{pair.Key},{pair.Value}");
-    }
-    
-    var localResult = localEvaluator.Evaluate(LocalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
-    Console.WriteLine("localResult");
-    foreach (var pair in localResult)
-    {
-        Console.WriteLine($"{pair.Key},{pair.Value}");
-    }
-    
-    var sw = Stopwatch.StartNew();
-    var levelScore = levelEvaluator.Evaluate(LevelDifficultyEvaluator.CreateContext(resultBoard), 1000);
-    sw.Stop();
+// if (!holeDigger.TryHollowOut2(ctx, out var resultBoard))
+// {
+//     return 0;
+// }
 
-    Console.WriteLine(
-        $"levelScore: {levelScore}, elapsed: {sw.Elapsed.TotalSeconds:F2} s"
-    );
+var resultBoard = borad;
+resultBoard.PrettyPrint();
+var result = globalEvaluator.Evaluate(GlobalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
+Console.WriteLine("global result");
+foreach (var pair in result)
+{
+    Console.WriteLine($"{pair.Key},{pair.Value}");
 }
+
+var localResult = localEvaluator.EvaluateMinDifficulty(LocalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
+Console.WriteLine("localResult");
+foreach (var pair in localResult)
+{
+    Console.WriteLine($"{pair.Key},{pair.Value}");
+}
+
+var sw = Stopwatch.StartNew();
+var levelScore = levelEvaluator.Evaluate(LevelDifficultyEvaluator.CreateContext(resultBoard), 1000);
+sw.Stop();
+
+Console.WriteLine(
+    $"levelScore: {levelScore}, elapsed: {sw.Elapsed.TotalSeconds:F2} s"
+);
+
 // using (var tqdm = ProgressBarUtils.Create(100, "进度条测试"))
 // {
 //     foreach (var i in Enumerable.Range(0, 100))

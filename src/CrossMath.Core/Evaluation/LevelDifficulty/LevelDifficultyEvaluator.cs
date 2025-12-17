@@ -69,16 +69,19 @@ public sealed class LevelDifficultyEvaluator
         while (!ShouldStop(ctx))
         {
             // 1️⃣ 局部难度分析（你已经做得很好）
-            var localDifficulty =
+            var localDifficultyEvaluation =
                 _localEvaluator.Evaluate(
                     LocalDifficultyEvaluator.CreateContext(ctx.WorkingBoard));
-
+            var localDifficulty = localDifficultyEvaluation.MinDifficultyPerCell;
+            
             var last = ctx.LastCoordinate ?? RowCol.Zero;
             // 2️⃣ 计算每个候选位置的 score
             var scoresMap = _scoreStrategy.Score(
                 ctx,
                 last,
-                localDifficulty);
+                localDifficulty,
+                localDifficultyEvaluation.CandidateMapAtCell
+                );
             
             var weights = _weightCalculator.Calculate(ctx, scoresMap);
 
