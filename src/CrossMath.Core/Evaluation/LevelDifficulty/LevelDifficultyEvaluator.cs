@@ -28,7 +28,7 @@ public sealed class LevelDifficultyEvaluator
         _scoreStrategy = scoreStrategy;
         _weightCalculator = weightCalculator;
         _selectionPolicy = selectionPolicy;
-        _trace = trace ?? new NullEvaluationTrace();;
+        _trace = trace ?? new NullEvaluationTrace();
     }
     
     public static LevelDifficultyEvaluatorBuilder Create()
@@ -59,7 +59,7 @@ public sealed class LevelDifficultyEvaluator
         return Math.Round(mean, 3);
     }
 
-    public double EvaluateOne(LevelDifficultyContext ctx) => RunOnce(ctx, 0);
+    public double EvaluateSingleRun(LevelDifficultyContext ctx) => RunOnce(ctx, 0);
     
     private double RunOnce(LevelDifficultyContext ctx, int runIndex)
     {
@@ -72,14 +72,14 @@ public sealed class LevelDifficultyEvaluator
             var localDifficultyEvaluation =
                 _localEvaluator.Evaluate(
                     LocalDifficultyEvaluator.CreateContext(ctx.WorkingBoard));
-            var localDifficulty = localDifficultyEvaluation.MinDifficultyPerCell;
+            var localDifficulties = localDifficultyEvaluation.MinDifficultyPerCell;
             
             var last = ctx.LastCoordinate ?? RowCol.Zero;
             // 2️⃣ 计算每个候选位置的 score
             var scoresMap = _scoreStrategy.Score(
                 ctx,
                 last,
-                localDifficulty,
+                localDifficulties,
                 localDifficultyEvaluation.CandidateMapAtCell
                 );
             
@@ -91,10 +91,10 @@ public sealed class LevelDifficultyEvaluator
             var step = new EvaluationStep(
                 ctx.StepIndex,
                 chosen,
-                localDifficulty[chosen],
+                localDifficulties[chosen],
                 scoresMap[chosen],
                 ctx.WorkingBoard.PossibleAnswers.Distinct().Count(),
-                new Dictionary<RowCol, int>(localDifficulty)
+                new Dictionary<RowCol, int>(localDifficulties)
             );
 
             _trace.OnStepEvaluated(step);

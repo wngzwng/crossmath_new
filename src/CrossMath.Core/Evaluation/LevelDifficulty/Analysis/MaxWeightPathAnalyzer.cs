@@ -18,7 +18,7 @@ public static class MaxWeightPathAnalyzer
             FirstStuckPoint = first,
             FirstStuckPointPercent =
                 first.HasValue && steps.Count > 0
-                    ? (double)first.Value / steps.Count
+                    ? (double)(first.Value)  / steps.Count
                     : null,
 
             PathCoordinates = steps

@@ -8,6 +8,8 @@ using CrossMath.Core.Codec;
 using CrossMath.Core.Evaluation;
 using CrossMath.Core.Evaluation.GlobalCellDifficulty;
 using CrossMath.Core.Evaluation.LevelDifficulty;
+using CrossMath.Core.Evaluation.LevelDifficulty.Analysis;
+using CrossMath.Core.Evaluation.LevelDifficulty.EvaluationTraces.MaxWeight;
 using CrossMath.Core.Evaluation.LevelDifficulty.ScoreStrategies;
 using CrossMath.Core.Evaluation.LevelDifficulty.SelectionPolicies;
 using CrossMath.Core.Evaluation.LevelDifficulty.WeightCalculators;
@@ -249,11 +251,13 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 });
 var globalEvaluator = GlobalDifficultyEvaluator.CreateDefault(loggerFactory);
 var localEvaluator = LocalDifficultyEvaluator.CreateDefault(loggerFactory);
+var maxWeightPathTrace = new MaxWeightPathTrace();
 var levelEvaluator = LevelDifficultyEvaluator.Create()
     .WithLocalEvaluator(localEvaluator)
     .WithScoreStrategy(new DefaultScoreStrategy())
     .WithWeightCalculator(new ExponentialWeightCalculator())
-    .WithSelectionPolicy(new WeightedRandomSelectionPolicy())
+    .WithSelectionPolicy(new MaxWeightSelectionPolicy())
+    .WithTrace(maxWeightPathTrace)
     .Build();
 
 var holeCountType = HoleCountType.FormulaCountMinus1;
@@ -290,6 +294,9 @@ sw.Stop();
 Console.WriteLine(
     $"levelScore: {levelScore}, elapsed: {sw.Elapsed.TotalSeconds:F2} s"
 );
+
+var maxWeightPathAnalysis = MaxWeightPathAnalyzer.Analyze(maxWeightPathTrace.Path);
+Console.WriteLine($"{maxWeightPathAnalysis.ToDebugString()}");
 
 // using (var tqdm = ProgressBarUtils.Create(100, "进度条测试"))
 // {

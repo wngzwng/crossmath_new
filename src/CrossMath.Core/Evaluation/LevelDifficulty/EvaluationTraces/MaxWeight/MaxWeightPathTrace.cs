@@ -21,7 +21,10 @@ public sealed class MaxWeightPathTrace : IEvaluationTrace
         _candidateThreshold = candidateThreshold;
     }
 
-    public void OnRunStart(int runIndex) { }
+    public void OnRunStart(int runIndex)
+    {
+        Path.Clear();
+    }
 
     public void OnStepEvaluated(EvaluationStep step)
     {

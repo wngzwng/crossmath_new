@@ -17,5 +17,10 @@ public sealed class MaxWeightPath
             .Where(s => s.IsPainPoint)
             .Select(s => s.StepIndex)
             .ToList();
+
+    public void Clear()
+    {
+        _steps.Clear();
+    }
 }
 
