@@ -51,11 +51,17 @@ public class GlobalDifficultyLayerThree: GlobalDifficultyLayerBase
         if (TryProcessSingleCandidateVariables(ctx, cspResult.VariableDomains))
             return true;
 
-        // 检查是否需要创建分支
-        var minDomainVariable = cspResult.VariableDomains
-            .Where(kvp => kvp.Value.Count > 1)  // 只考虑多候选域的变量
-            .MinBy(kvp => kvp.Value.Count);
+        var candidates = cspResult.VariableDomains
+            .Where(kvp => kvp.Value.Count > 1) // 只考虑多候选域的变量
+            .ToList();
 
+        if (candidates.Count == 0)
+        {
+            return false;  // 没有分支，无需继续推进
+        }
+        
+        // 检查是否需要创建分支
+        var minDomainVariable = candidates.MinBy(kvp => kvp.Value.Count);
         if (minDomainVariable.Value.Count > 1)
         {
             branches = CreateBranches(ctx, minDomainVariable.Key, minDomainVariable.Value);

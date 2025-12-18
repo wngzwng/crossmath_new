@@ -69,9 +69,17 @@ public class BoardSolver: IBoardSolver
             
             if (cspResult.VariableDomains.Count <= 0) break;
             
-            var minDomainVariable = cspResult.VariableDomains
-                .Where(kvp => kvp.Value.Count > 1)  // 只考虑多候选域的变量
-                .MinBy(kvp => kvp.Value.Count);
+            var candidates = cspResult.VariableDomains
+                .Where(kvp => kvp.Value.Count > 1) // 只考虑多候选域的变量
+                .ToList();
+
+            if (candidates.Count == 0)
+            {
+                // 没有可分支变量
+                continue; 
+            }
+            
+            var minDomainVariable = candidates.MinBy(kvp => kvp.Value.Count);
             foreach (var branch in CreateBranches(node, minDomainVariable.Key, minDomainVariable.Value))
             {
                 _statck.Push(branch);
