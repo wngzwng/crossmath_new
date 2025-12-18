@@ -266,38 +266,40 @@ var ctx = HollowOutContext.Create(
     HollowOutStrategyFactory.CreateStrategy(HollowOutStrategyType.NonFocusPriority), 
     DefaultHoleValidator.Create());
 var holeDigger = new HoleDigger();
-// if (!holeDigger.TryHollowOut2(ctx, out var resultBoard))
+Console.WriteLine("========");
+if (!holeDigger.TryHollowOut2(ctx, out var resultBoard))
+{
+    return 0;
+}
+
+// resultBoard = borad;
+// resultBoard.PrettyPrint();
+// var result = globalEvaluator.Evaluate(GlobalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
+// Console.WriteLine("global result");
+// foreach (var pair in result)
 // {
-//     return 0;
+//     Console.WriteLine($"{pair.Key},{pair.Value}");
 // }
+//
+// var localResult = localEvaluator.EvaluateMinDifficulty(LocalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
+// Console.WriteLine("localResult");
+// foreach (var pair in localResult)
+// {
+//     Console.WriteLine($"{pair.Key},{pair.Value}");
+// }
+//
+// var sw = Stopwatch.StartNew();
+// var levelScore = levelEvaluator.Evaluate(LevelDifficultyEvaluator.CreateContext(resultBoard), 1000);
+// sw.Stop();
+//
+// Console.WriteLine(
+//     $"levelScore: {levelScore}, elapsed: {sw.Elapsed.TotalSeconds:F2} s"
+// );
+//
+// var maxWeightPathAnalysis = MaxWeightPathAnalyzer.Analyze(maxWeightPathTrace.Path);
+// Console.WriteLine($"{maxWeightPathAnalysis.ToDebugString()}");
 
-var resultBoard = borad;
-resultBoard.PrettyPrint();
-var result = globalEvaluator.Evaluate(GlobalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
-Console.WriteLine("global result");
-foreach (var pair in result)
-{
-    Console.WriteLine($"{pair.Key},{pair.Value}");
-}
-
-var localResult = localEvaluator.EvaluateMinDifficulty(LocalDifficultyEvaluator.CreateContext(resultBoard)).OrderBy(x => x.Key).ToList();
-Console.WriteLine("localResult");
-foreach (var pair in localResult)
-{
-    Console.WriteLine($"{pair.Key},{pair.Value}");
-}
-
-var sw = Stopwatch.StartNew();
-var levelScore = levelEvaluator.Evaluate(LevelDifficultyEvaluator.CreateContext(resultBoard), 1000);
-sw.Stop();
-
-Console.WriteLine(
-    $"levelScore: {levelScore}, elapsed: {sw.Elapsed.TotalSeconds:F2} s"
-);
-
-var maxWeightPathAnalysis = MaxWeightPathAnalyzer.Analyze(maxWeightPathTrace.Path);
-Console.WriteLine($"{maxWeightPathAnalysis.ToDebugString()}");
-
+return 0;
 // using (var tqdm = ProgressBarUtils.Create(100, "进度条测试"))
 // {
 //     foreach (var i in Enumerable.Range(0, 100))
@@ -306,3 +308,7 @@ Console.WriteLine($"{maxWeightPathAnalysis.ToDebugString()}");
 //         tqdm.Update();            
 //     }
 // }
+
+/*
+./CrossMath.CLI hole -i /Users/admin/RiderProjects/Puzzle/CrossMath/data/test/filledBoards_part0001.csv -o ~/RiderProjects/Puzzle/CrossMath/data/test_0001.csv
+*/

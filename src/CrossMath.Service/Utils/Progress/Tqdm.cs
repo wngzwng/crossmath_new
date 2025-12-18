@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace CrossMath.Core.Utils.Progress;
+namespace CrossMath.Service.Utils.Progress;
 
 
 public sealed class Tqdm : IDisposable
@@ -8,14 +8,14 @@ public sealed class Tqdm : IDisposable
     private int _total;
     private readonly Stopwatch _sw = new();
     private int _current = 0;
-    private int _refreshIntervalMs;
+    private readonly int _refreshIntervalMs;
     private long _lastRefresh = 0;
     private string? _prefix;
 
-    private IProgressWriter _writer;
+    private readonly IProgressWriter _writer;
 
     public Tqdm(
-        int total, 
+        int total = 100, 
         string? desc = null, 
         int refreshIntervalMs = 50,
         IProgressWriter? writer = null)
@@ -28,11 +28,19 @@ public sealed class Tqdm : IDisposable
         _sw.Start();
         Render();
     }
+
+    public Tqdm Init(int total, string? desc = null)
+    {
+        _total = total;
+        _prefix = desc;
+        return this;
+    }
     
 
     public void Update(int step = 1)
     {
-        Interlocked.Add(ref _current, step);
+        // Interlocked.Add(ref _current, step);
+        _current += step;
 
         var now = _sw.ElapsedMilliseconds;
 

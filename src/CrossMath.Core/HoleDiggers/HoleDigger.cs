@@ -85,15 +85,15 @@ public sealed class HoleDigger
         var minHoleCount = MinHollowOutCount(ctx);
         // 更新 ExpectedHollowCount 
         ctx.UpdateExpectedHollowCountAfterPhaseOne(minHoleCount);
-        Console.WriteLine("第一阶段挖空后的空盘");
-        ctx.WorkingBoard.PrettyPrint();
+        // Console.WriteLine("第一阶段挖空后的空盘");
+        // ctx.WorkingBoard.PrettyPrint();
         // 判断是否停止
         if (ShoudStop(ctx))
         {
             resultBoard = ctx.GetResultBoard();
             return true;
         }
-        ctx.WorkingBoard.PrettyPrint();
+        // ctx.WorkingBoard.PrettyPrint();
         // 进入第二阶段
         
         GobalHollowOut(ctx);
@@ -133,7 +133,7 @@ public sealed class HoleDigger
                 minHollowCount++;
             }
             // 失败也不回退，继续尝试下一个全满算式（保持你原逻辑）
-            ctx.WorkingBoard.PrettyPrint();
+            // ctx.WorkingBoard.PrettyPrint();
         }
 
         return minHollowCount;
