@@ -38,7 +38,7 @@ public sealed class HoleJob
                 results.Add(Merge(record, result));
             }
 
-            progress?.Update(i + 1);
+            progress?.Update();
         }
 
         CsvUtils.WriteDictCsv(outputFile, results);
