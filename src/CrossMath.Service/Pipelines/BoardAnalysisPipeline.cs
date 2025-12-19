@@ -91,7 +91,7 @@ public class BoardAnalysisPipeline
     }
     public BoardAnalysis Run(BoardData board, int levelRunCount)
     {
-        board.PrettyPrint();
+        // board.PrettyPrint();
         MaxWeightPathAnalysis maxWeightPathAnalysis = BuildMaxWeight(board.Clone(), out var maxWeightScore);
 
         return new BoardAnalysis(

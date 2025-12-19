@@ -14,6 +14,7 @@ public static class Program
         root.Add(new Commands.BartestCommand().Build());
         root.Add(new Commands.HoleCommand().Build());
         root.Add(new Commands.ConvertCommand().Build());
+        root.Add(new Commands.InitAnalyticsCommand().Build());
         root.Add(new DiagramDirective());
         return await root.Parse(args).InvokeAsync();
     }
@@ -32,4 +33,29 @@ find  /Users/admin/RiderProjects/Puzzle/CrossMath/data/split -name '*.csv' -prin
     --halt soon,fail=1 \
     ./CrossMath.CLI  hole -i {} --output-dir /Users/admin/RiderProjects/Puzzle/CrossMath/data/split_result
 
+
+find /Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_randomed_split -name '*.csv' -print0 \
+| time parallel -0 -j 3 \
+    --bar \
+    --eta \
+    --joblog analytics_init.log \
+    ./CrossMath.CLI  analytics-init \
+        -i {} \
+        --output-dir /Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_randomed_split_result \
+        -p --run-count 1000
+
+
+ ./CrossMath.CLI  analytics-init \
+        -i /Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_randomed_split/merged_randomed_part0001.csv \
+        --output-dir /Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_randomed_split_result \
+        -p --run-count 1000
+        
+        
+ find /Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_randomed_split -name '*.csv' -print0 \
+| time parallel -0 -j 3 \
+--ungroup   --joblog analytics_init.log \ 
+    ./CrossMath.CLI  analytics-init \
+        -i {} \
+        --output-dir /Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_randomed_split_result \
+        -p --run-count 1000
 */
