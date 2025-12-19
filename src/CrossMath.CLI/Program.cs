@@ -1,4 +1,6 @@
 ﻿using System.CommandLine;
+using CrossMath.Core.Utils.Progress;
+using CrossMath.Service.Jobs;
 
 namespace CrossMath.CLI;
 
@@ -11,10 +13,17 @@ public static class Program
         root.Add(Framework.Docs.DocsCommand.Build(root));
         root.Add(new Commands.BartestCommand().Build());
         root.Add(new Commands.HoleCommand().Build());
+        root.Add(new Commands.ConvertCommand().Build());
         root.Add(new DiagramDirective());
         return await root.Parse(args).InvokeAsync();
     }
 }
+
+// var inputfile = "/Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_distinct.csv";
+// var finalOutput = "/Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_distinct_new_encode.csv";
+//
+// var job = new ConvertJob(new StdOutProgressWriter());
+// job.Run(inputfile, finalOutput);
 
 /**
 find  /Users/admin/RiderProjects/Puzzle/CrossMath/data/split -name '*.csv' -print0 \

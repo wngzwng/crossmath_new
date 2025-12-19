@@ -4,215 +4,112 @@ using CrossMath.Core.Models;
 
 namespace CrossMath.Core.Codec;
 
-public static class BoardDataCodec
+
+public static partial class BoardDataCodec
 {
-    // 初级盘中，答案与原数据使用 : 作为分隔  
-    
-    /// <summary>编码 BoardData 为 (hex串, layout串)</summary>
-    public static (string boardHex, string layout) Encode(BoardData b)
+    #region ===== 协议常量（Public）=====
+
+    /// <summary>
+    /// Board 数据与 Answer 数据之间的分隔符。
+    /// 协议形式：{h}{w}{board}[:{answer}]
+    /// </summary>
+    public const string BoardAnswerSeparator = ":";
+
+    /// <summary>
+    /// 数字编码的最大开区间上界（十六进制）。
+    /// 0x00 ~ 0xF9 为合法数字编码，0xFA 及以上为操作符号区。
+    /// </summary>
+    public static readonly int NumberOpenMax = ToInt("fa");
+
+    #endregion
+
+
+    #region ===== Encode =====
+
+    /// <summary>
+    /// 将 BoardData 编码为十六进制字符串。
+    /// 返回 (encoded, layout)，用于 Decode 对称还原。
+    /// </summary>
+    public static (string encoded, string layout) Encode(BoardData board)
     {
-        if (b.Width <= 0 || b.Height <= 0)
-            throw new ArgumentException("棋盘尺寸无效");
-        if (string.IsNullOrEmpty(b.Layout.LayoutStr))
-            throw new ArgumentException("布局不能为空");
+        if (board == null)
+            throw new ArgumentNullException(nameof(board));
 
-        var sb = new StringBuilder();
-        sb.Append($"{b.Height:x1}{b.Width:x1}");
-
-        for (int i = 0; i < b.Height; i++)
-        {
-            for (int j = 0; j < b.Width; j++)
-            {
-                int idx = i * b.Width + j;
-                if (idx >= b.Layout.Length) break;
-                if (b.Layout[idx] != "1") continue;
-
-                var rc = new RowCol(i, j);
-                if (b.FilledValues.TryGetValue(rc, out var token))
-                {
-                    if (OperatorCodec.IsOperatorToken(token))
-                    {
-                        if (!OperatorCodec.TryEncode(token, out var hex))
-                            throw new InvalidOperationException($"未知运算符: {token}");
-                        sb.Append(hex);
-                    }
-                    else
-                    {
-                        if (!int.TryParse(token, out var n))
-                            throw new InvalidOperationException($"非法数字: {token}");
-                        sb.Append($"{n:x2}");
-                    }
-                }
-                else if (b.HoleTypes.TryGetValue(rc, out var t))
-                {
-                    sb.Append(t == CellType.Operator
-                        ? OperatorCodec.OpHoleHex
-                        : OperatorCodec.NumberHoleHex);
-                }
-                else
-                {
-                    throw new InvalidOperationException($"有效格 {rc} 未指定内容或空格类型");
-                }
-            }
-        }
-
-        // 附加候选项
-        foreach (var s in b.PossibleAnswers)
-        {
-            if (OperatorCodec.IsOperatorToken(s))
-            {
-                if (!OperatorCodec.TryEncode(s, out var hex))
-                    throw new InvalidOperationException($"未知候选运算符: {s}");
-                sb.Append(hex);
-            }
-            else
-            {
-                if (!int.TryParse(s, out var n))
-                    throw new InvalidOperationException($"非法候选数字: {s}");
-                sb.Append($"{n:x2}");
-            }
-        }
-        
-        return (sb.ToString(), b.Layout.LayoutStr);
+        return Encode(board, BoardAnswerSeparator);
     }
-    
-    
-    /// <summary>解码为 BoardData</summary>
-    public static BoardData Decode(string hex, string layout)
+
+    #endregion
+
+
+    #region ===== Decode（Wire Format → BoardData）=====
+
+    /// <summary>
+    /// 解码十六进制编码与 layout，自动识别是否包含 Answer 分隔符。
+    /// </summary>
+    public static BoardData Decode(string encoded, string layout)
     {
-        if (string.IsNullOrWhiteSpace(hex))
-            throw new ArgumentException("编码不能为空");
+        if (string.IsNullOrWhiteSpace(encoded))
+            throw new ArgumentException("encoded 不能为空", nameof(encoded));
+
         if (string.IsNullOrWhiteSpace(layout))
-            throw new ArgumentException("布局不能为空");
+            throw new ArgumentException("layout 不能为空", nameof(layout));
 
-        hex = hex.ToLowerInvariant();
-
-        if (hex.Length < 2)
-            throw new ArgumentException("编码过短");
-        if (hex.Length % 2 != 0)
-            throw new ArgumentException("编码长度必须为偶数");
-        if (layout.Any(c => c is not ('0' or '1')))
-            throw new ArgumentException("布局必须只包含 0 或 1");
-
-        // ---------- 尺寸解析 ----------
-        int h = Convert.ToInt32(hex[0].ToString(), 16);
-        int w = Convert.ToInt32(hex[1].ToString(), 16);
-        if (h <= 0 || w <= 0)
-            throw new ArgumentException($"无效尺寸: h:{h} × w:{w}");
-        if (layout.Length != w * h)
-            throw new ArgumentException($"布局尺寸不对: layout.Length({layout.Length}) !== {w * h}(w:{w} * h:{h}");
-
-
-        var cellMap = new Dictionary<RowCol, string>();
-        var holeTypes = new Dictionary<RowCol, CellType>();
-        var holePositions = new HashSet<RowCol>();
-        var candidates = new List<string>();
-        int dataIndex = 2;
-
-        // ---------- 内部工具函数 ----------
-        string? DecodeToken(string token, out CellType? holeType)
-        {
-            holeType = null;
-
-            if (OperatorCodec.TryDecode(token, out var sym))
-                return sym;
-            
-            if (token == OperatorCodec.OpHoleHex)
-            {
-                holeType = CellType.Operator;
-                return null;
-            }
-
-            if (token == OperatorCodec.NumberHoleHex)
-            {
-                holeType = CellType.Number;
-                return null;
-            }
-
-            int num = Convert.ToInt32(token, 16);
-            if (num <= Convert.ToInt32("fa", 16))
-                return num.ToString();
-
-            throw new ArgumentException($"未知编码: {token}");
-        }
-
-        // ---------- 棋盘主体解析 ----------
-        for (int i = 0; i < h; i++)
-        {
-            for (int j = 0; j < w; j++)
-            {
-                int idx = i * w + j;
-                if (idx >= layout.Length) break;
-                if (layout[idx] != '1') continue;
-
-                if (dataIndex + 2 > hex.Length)
-                    throw new ArgumentException("数据不完整");
-
-                var token = hex.Substring(dataIndex, 2);
-                dataIndex += 2;
-
-                var rc = new RowCol(i, j);
-                var value = DecodeToken(token, out var holeType);
-
-                if (holeType.HasValue)
-                {
-                    holeTypes[rc] = holeType.Value;
-                    holePositions.Add(rc);
-                }
-                else if (value != null)
-                    cellMap[rc] = value;
-            }
-        }
-
-        // ---------- 候选解析 ----------
-        while (dataIndex + 2 <= hex.Length)
-        {
-            var token = hex.Substring(dataIndex, 2);
-            dataIndex += 2;
-
-            var value = DecodeToken(token, out _);
-            if (value != null)
-                candidates.Add(value);
-        }
-
-        // ---------- 结果组装 ----------
-        return BoardData.Create(
-            layoutStr: layout,
-            width: w,
-            height: h,
-            filledValues: cellMap,
-            holeTypes: holeTypes,
-            holes: holePositions,
-            possibleAnswers: candidates);
+        return encoded.Contains(BoardAnswerSeparator)
+            ? DecodeSeparated(encoded, layout)
+            : DecodeConcatenated(encoded, layout);
     }
 
+    #endregion
 
+
+    #region ===== Decode（Layout → 空 BoardData）=====
+
+    /// <summary>
+    /// 根据 layout 与尺寸构造一个空的 BoardData（不包含编码数据）。
+    /// </summary>
     public static BoardData Decode(string layout, int width, int height)
-    
     {
-        if (string.IsNullOrWhiteSpace(layout))
-            throw new ArgumentException("布局不能为空");
-
-        if (layout.Length != width * height)
-            throw new ArgumentException(
-                $"布局尺寸不对: layout.Length({layout.Length}) !== {width * height}(w:{width} * h:{height}");
-        
-        if (layout.Any(c => c is not ('0' or '1')))
-            throw new ArgumentException("布局必须只包含 0 或 1");
-        
-        // ---------- 结果组装 ----------
-        var boardLayout = new BoardLayout(layout: layout, width: width, height: height);
-        return new BoardData(boardLayout);
+        return DecodeLayoutCore(layout, width, height);
     }
 
+    /// <summary>
+    /// 根据 layout 与 Size 构造一个空的 BoardData。
+    /// </summary>
     public static BoardData Decode(string layout, Size size)
     {
-        return Decode(layout, size.Width, size.Height);
+        return DecodeLayoutCore(layout, size.Width, size.Height);
     }
 
+    /// <summary>
+    /// 根据 BoardLayout 构造一个空的 BoardData。
+    /// </summary>
     public static BoardData Decode(BoardLayout boardLayout)
     {
-        return Decode(boardLayout.LayoutStr, boardLayout.Width, boardLayout.Height);
+        if (boardLayout == null)
+            throw new ArgumentNullException(nameof(boardLayout));
+
+        return DecodeLayoutCore(
+            boardLayout.LayoutStr,
+            boardLayout.Width,
+            boardLayout.Height);
+    }
+
+    #endregion
+    
+    private static BoardData DecodeLayoutCore(
+        string layout,
+        int width,
+        int height)
+    {
+        if (string.IsNullOrWhiteSpace(layout))
+            throw new ArgumentException("布局不能为空");
+
+        ValidateLayoutSize(width, height, layout);
+
+        if (layout.Any(c => c is not ('0' or '1')))
+            throw new ArgumentException("布局必须只包含 0 或 1");
+
+        var boardLayout = new BoardLayout(layout, width, height);
+        return new BoardData(boardLayout);
     }
 }
-    

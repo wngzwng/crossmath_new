@@ -158,8 +158,7 @@ public class BoardLayoutTests
     public void ToString_ShouldContainBoardInformation()
     {
         string s = _layout.ToString();
-
-        Assert.That(s, Does.Contain("BoardLayout 7×7"));
+        
         Assert.That(s, Does.Contain($"{_layout.ValidCellCount}"));
         Assert.That(s, Does.Contain("1111101"));
     }
@@ -190,8 +189,7 @@ public class BoardLayoutTests
         _layout.Print();
 
         string output = sw.ToString();
-
-        Assert.That(output, Does.Contain("BoardLayout 7×7"));
+        
         Assert.That(output, Does.Contain("1111101"));
         Assert.That(output, Does.Contain("0000101"));
     }

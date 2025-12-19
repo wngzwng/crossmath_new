@@ -239,9 +239,13 @@ Console.WriteLine("Hello, World!");
 
 var level = "bb00fc00fa00fcfb0000fb00fa00fafafe1700fd00fa00fa00fe00fa00fc00fa01fd00fa00261c0a0f12182a2201222a012a1c0e0e";
 var layout = "0011111000000100010000001011111000010001010000100011111000000001000000111110000001000000000010000000000100000011111000000";
+
 var borad = BoardDataCodec.Decode(level, layout);
 borad.PrettyPrint();
 
+var (encoded, layout_str) = BoardDataCodec.Encode(borad);
+Console.WriteLine(encoded);
+Console.WriteLine(layout_str);
 // var holeCountType = RandomHoleCountTypeSelector.GetRandomByDefaultWeight();
 using var loggerFactory = LoggerFactory.Create(builder =>
 {
@@ -267,9 +271,11 @@ var ctx = HollowOutContext.Create(
     DefaultHoleValidator.Create());
 var holeDigger = new HoleDigger();
 Console.WriteLine("========");
-if (!holeDigger.TryHollowOut2(ctx, out var resultBoard))
+if (holeDigger.TryHollowOut2(ctx, out var resultBoard))
 {
+    resultBoard.PrettyPrint();
     return 0;
+    
 }
 
 // resultBoard = borad;

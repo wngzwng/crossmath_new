@@ -12,4 +12,12 @@ public interface IExpressionSchema
   
     /// <summary>获取所有索引对应的逻辑角色（缓存友好）</summary>  
     IReadOnlyList<CellType> GetAllCellTypes();  
+    
+    // /// <summary>
+    // /// 判断这组 tokens 是否符合该 schema 的结构与基本语义
+    // /// </summary>
+    // bool CanInterpret(IReadOnlyList<string> layoutTokens);
+    //
+    // IReadOnlyList<string> ToExpressionOrder(IReadOnlyList<string> layoutTokens);
+    // IReadOnlyList<string> FromExpressionOrder(IReadOnlyList<string> exprTokens);
 }

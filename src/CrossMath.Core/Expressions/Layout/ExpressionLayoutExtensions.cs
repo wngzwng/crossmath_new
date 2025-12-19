@@ -50,7 +50,6 @@ public static class ExpressionLayoutExtensions
         return count;
     }
 
-
     /// <summary>
     /// 提取表达式（即使有空位也返回部分填充的表达式）
     /// </summary>
@@ -59,7 +58,8 @@ public static class ExpressionLayoutExtensions
         var tokens = exprLayout.Cells
             .Select(pos => board[pos]) // 空位用空字符串占位
             .ToArray();
-
+        var schema = exprLayout.Schema;
+        
         return ExpressionFactory.FromTokens(tokens);
     }
 }

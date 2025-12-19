@@ -144,7 +144,7 @@ public class LayoutFiller
     {
         if (tokens.Count != layout.Cells.Count)
             throw new InvalidOperationException($"Token count mismatch: expected {layout.Cells.Count}, got {tokens.Count}");
-
+        
         for (int i = 0; i < layout.Cells.Count; i++)
         {
             board.SetValueOnly(layout.Cells[i], tokens[i]);

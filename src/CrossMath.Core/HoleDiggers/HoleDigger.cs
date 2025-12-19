@@ -143,7 +143,8 @@ public sealed class HoleDigger
             targetExpLayout = null;
             foreach (var expLayout in exprLayouts)
             {
-                if (expLayout.ToExpression(ctx.WorkingBoard).EmptyCellCount() == 0)
+                // if (expLayout.ToExpression(ctx.WorkingBoard).EmptyCellCount() == 0)
+                if (expLayout.EmptyCellCount(ctx.WorkingBoard) == 0)
                 {
                     targetExpLayout = expLayout;
                     return true;

@@ -3,6 +3,7 @@ using CrossMath.Core.Evaluation.LevelDifficulty.ScoreStrategies;
 using CrossMath.Core.Evaluation.LevelDifficulty.SelectionPolicies;
 using CrossMath.Core.Evaluation.LevelDifficulty.WeightCalculators;
 using CrossMath.Core.Evaluation.LocalDifficulty;
+using CrossMath.Core.Types;
 
 namespace CrossMath.Core.Evaluation.LevelDifficulty;
 
@@ -13,6 +14,7 @@ public sealed class LevelDifficultyEvaluatorBuilder
     private IWeightCalculator? _weightCalculator;
     private ISelectionPolicy? _selectionPolicy;
     private IEvaluationTrace? _trace;
+    private Func<Size, RowCol>? _defaultInitLastCoordGetter;
 
     internal LevelDifficultyEvaluatorBuilder() { }
 
@@ -51,6 +53,12 @@ public sealed class LevelDifficultyEvaluatorBuilder
         return this;
     }
 
+    public LevelDifficultyEvaluatorBuilder WithDefaultInitLastCoordGetter(Func<Size, RowCol> defaultInitLastCoordGetter)
+    {
+        _defaultInitLastCoordGetter = defaultInitLastCoordGetter;
+        return this;
+    }
+
     public LevelDifficultyEvaluator Build()
     {
         return new LevelDifficultyEvaluator(
@@ -62,7 +70,8 @@ public sealed class LevelDifficultyEvaluatorBuilder
                               ?? throw new InvalidOperationException("WeightCalculator not set"),
             selectionPolicy: _selectionPolicy
                              ?? throw new InvalidOperationException("SelectionPolicy not set"),
-            trace: _trace
+            trace: _trace,
+            defaultInitLastCoordGetter:_defaultInitLastCoordGetter
         );
     }
 }

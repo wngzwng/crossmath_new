@@ -17,18 +17,22 @@ public sealed class LevelDifficultyEvaluator
     private readonly ISelectionPolicy _selectionPolicy;
     private readonly IEvaluationTrace _trace;
 
+    private readonly Func<Size, RowCol> _defaultInitLastCoordGetter;
+
     public LevelDifficultyEvaluator(
         LocalDifficultyEvaluator localEvaluator,
         IScoreStrategy scoreStrategy,
         IWeightCalculator weightCalculator,
         ISelectionPolicy selectionPolicy,
-        IEvaluationTrace? trace = null)
+        IEvaluationTrace? trace = null,
+        Func<Size, RowCol>? defaultInitLastCoordGetter = null)
     {
         _localEvaluator = localEvaluator;
         _scoreStrategy = scoreStrategy;
         _weightCalculator = weightCalculator;
         _selectionPolicy = selectionPolicy;
         _trace = trace ?? new NullEvaluationTrace();
+        _defaultInitLastCoordGetter = defaultInitLastCoordGetter ?? (size => size.MaxCoord);
     }
     
     public static LevelDifficultyEvaluatorBuilder Create()
@@ -39,22 +43,18 @@ public sealed class LevelDifficultyEvaluator
         return new LevelDifficultyContext(board);
     }
 
-    public double Evaluate(LevelDifficultyContext ctx, int runCount)
+    public double Evaluate(LevelDifficultyContext ctx, int runCount, bool progress = true)
     {
-        // double total = 0;
         double mean = 0;
 
-        using (var tqdm = new Tqdm(runCount, "评估关卡难度"))
+        using var tqdm = progress ? new Tqdm(runCount, "评估关卡难度") : null;
+
+        for (int n = 1; n <= runCount; n++)
         {
-            for (int i = 1; i <= runCount; i++)
-            {
-                // total += RunOnce(ctx, i);
-                double value = RunOnce(ctx, i - 1);
-                mean += (value - mean) / i;
-                tqdm.Update();
-            }
+            var sample = RunOnce(ctx, n - 1);   // 0-based step index
+            mean += (sample - mean) / n;       // running mean: μₙ = μₙ₋₁ + (xₙ - μₙ₋₁) / n
+            tqdm?.Update();
         }
-        
 
         return Math.Round(mean, 3);
     }
@@ -74,7 +74,7 @@ public sealed class LevelDifficultyEvaluator
                     LocalDifficultyEvaluator.CreateContext(ctx.WorkingBoard));
             var localDifficulties = localDifficultyEvaluation.MinDifficultyPerCell;
             
-            var last = ctx.LastCoordinate ?? RowCol.Zero;
+            var last = ctx.LastCoordinate ?? _defaultInitLastCoordGetter(ctx.WorkingBoard.BoardSize);
             // 2️⃣ 计算每个候选位置的 score
             var scoresMap = _scoreStrategy.Score(
                 ctx,
