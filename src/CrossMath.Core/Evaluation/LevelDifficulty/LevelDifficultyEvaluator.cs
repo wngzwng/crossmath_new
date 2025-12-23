@@ -1,3 +1,4 @@
+using CrossMath.Core.Codec;
 using CrossMath.Core.Types;
 using CrossMath.Core.Evaluation.LevelDifficulty.EvaluationTraces;
 using CrossMath.Core.Evaluation.LevelDifficulty.ScoreStrategies;
@@ -85,8 +86,22 @@ public sealed class LevelDifficultyEvaluator
             
             var weights = _weightCalculator.Calculate(ctx, scoresMap);
 
-            // 3️⃣ 根据策略选择一个坐标
-            var chosen = _selectionPolicy.Select(weights);
+            RowCol chosen;
+            try
+            {
+                // 3️⃣ 根据策略选择一个坐标
+                chosen = _selectionPolicy.Select(weights);
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.Error.WriteLine(e);
+                var board = ctx.InitialBoard;
+                var (encoded, layoutStr) = BoardDataCodec.Encode(board);
+                Console.Error.WriteLine($"level: {encoded} \n layout: {layoutStr}");
+                throw;
+            }
+            // // 3️⃣ 根据策略选择一个坐标
+            // var chosen = _selectionPolicy.Select(weights);
             
             var step = new EvaluationStep(
                 ctx.StepIndex,

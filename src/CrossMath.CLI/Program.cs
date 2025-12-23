@@ -1,6 +1,8 @@
 ﻿using System.CommandLine;
 using CrossMath.Core.Utils.Progress;
 using CrossMath.Service.Jobs;
+using CrossMath.Service.Pipelines;
+using Microsoft.Extensions.Logging;
 
 namespace CrossMath.CLI;
 
@@ -20,11 +22,20 @@ public static class Program
     }
 }
 
-// var inputfile = "/Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_distinct.csv";
-// var finalOutput = "/Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_distinct_new_encode.csv";
+// var inputfile = "/Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_randomed_split/merged_randomed_part0001.csv";
+// var finalOutput = "/Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_randomed_split_result/merged_randomed_part0001.csv";
 //
-// var job = new ConvertJob(new StdOutProgressWriter());
-// job.Run(inputfile, finalOutput);
+// // var job = new ConvertJob(new StdOutProgressWriter());
+// // job.Run(inputfile, finalOutput);
+//
+// var loggerFacotry = LoggerFactory.Create(builder =>
+// {
+//     // builder.AddConsole();
+//     builder.AddDebug();
+// });
+// var pipeline = new BoardAnalysisPipeline(loggerFacotry);
+// var initBordJob = new InitBoardAnalysisJob(pipeline, 1000);
+// initBordJob.Run(inputfile, finalOutput);
 
 /**
 find  /Users/admin/RiderProjects/Puzzle/CrossMath/data/split -name '*.csv' -print0 \
@@ -58,4 +69,8 @@ find /Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_randomed_split -nam
         -i {} \
         --output-dir /Users/admin/RiderProjects/Puzzle/CrossMath/data/merged_randomed_split_result \
         -p --run-count 1000
+        
+        
+        
+./init-board-analyze-runner.sh ./crossmath-init-boards-padding-analyze ./crossmath-init-boards-analyzed 1000 72 2> >(tee analyze-error.log >&2)        
 */

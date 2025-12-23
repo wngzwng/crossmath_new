@@ -35,11 +35,25 @@ public class InitBoardAnalysisJob
         {
             var record = filledBoards[i];
             var board = Decode(record!);
-
-            var result = _pipeline.Run(board, _levelRunCount);
-            results.Add(Merge(record, result));
+            BoardAnalysis result;
+            try
+            {
+                result = _pipeline.Run(board, _levelRunCount);
+                results.Add(Merge(record, result));
+            }
+            catch (InvalidOperationException)
+            {
+                // 预期失败：跳过
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e.Message);
+            }
+            finally
+            {
+                progress?.Update();
+            }
             
-            progress?.Update();
         }
 
         CsvUtils.WriteDictCsv(outputFile, results);
@@ -66,7 +80,7 @@ public class InitBoardAnalysisJob
         merged["start_diff"] = string.Join("", result.LocalDifficulties);
         
         merged["stuck_num"] = result.StuckCount;
-        merged["stucks_point"] = result.StuckPoints;
+        merged["stucks_point"] = string.Join(",",result.StuckPoints);
         merged["first_stuck_point"] = result.FirstStuckPoint;
         merged["first_stuck_point_percent"] = Math.Round(result.FirstStuckPointPercent, 3);
         merged["empty_friendly"] = Math.Round(result.EmptyFriendly, 3);
@@ -78,3 +92,25 @@ public class InitBoardAnalysisJob
         return merged;;
     }
 }
+
+/*
+1,7726fb08fb04fa32fbfbfc031bfc0dfa0efbfafbfa05232524fafa2efb04fa32,1111111101000110111111010101101010110001001111100,7x7,7,2,2,1.66,8,0.88,0,7,5,7,5,1.0,1,1,0,1,3,50,1.33,"7,2,0,0","4,0,0,0",1,0,0,
+7726fb00fb00fa00fbfbfc031bfc00fa0efbfafbfa00000024fafa00fb00fa00:0804320d0523252e0432,"8,4,50,13,5,35,37,46,4,50",
+10,
+2211222222,
+1,
+2,
+18
+,2311223243,
+2,
+3,
+5,
+3,
+0.2,
+1.6,
+"(1, 7, 1),(3, 5, 1),(5, 5, 2),(7, 5, 1),(7, 1, 2),(5, 1, 1),(7, 3, 1),(5, 3, 2),(1, 3, 1),(1, 5, 1)",
+100.499,
+108.517
+   
+
+*/

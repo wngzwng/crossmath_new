@@ -99,7 +99,7 @@ public class InitAnalyticsCommand : CliCommandBase
             builder.AddDebug();
         });
         var pipeline = new BoardAnalysisPipeline(loggerFacotry);
-        var initBordJob = new InitBoardAnalysisJob(pipeline, runCount, needProgress ? new Core.Utils.Progress.StdErrProgressWriter() : null);
+        var initBordJob = new InitBoardAnalysisJob(pipeline, runCount, needProgress ? new Core.Utils.Progress.StdOutProgressWriter() : null);
         initBordJob.Run(input, finalOutput);
         return Task.FromResult(0);
     }

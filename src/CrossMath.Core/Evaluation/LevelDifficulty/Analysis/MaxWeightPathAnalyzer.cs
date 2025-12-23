@@ -9,7 +9,7 @@ public static class MaxWeightPathAnalyzer
         var steps = path.Steps;
         var stuckSteps = steps.Where(s => s.IsPainPoint).ToList();
 
-        int? first = stuckSteps.FirstOrDefault()?.StepIndex;
+        int? first = stuckSteps.FirstOrDefault()?.StepIndex; // base 0
 
         return new MaxWeightPathAnalysis
         {
@@ -18,7 +18,7 @@ public static class MaxWeightPathAnalyzer
             FirstStuckPoint = first,
             FirstStuckPointPercent =
                 first.HasValue && steps.Count > 0
-                    ? (double)(first.Value)  / steps.Count
+                    ? (double)(first.Value + 1)  / steps.Count
                     : null,
 
             PathCoordinates = steps

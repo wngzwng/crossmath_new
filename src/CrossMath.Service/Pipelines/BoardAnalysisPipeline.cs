@@ -35,9 +35,9 @@ public sealed class BoardAnalysis
     
     public int FirstStuckPoint => _maxWeightPathAnalysis.FirstStuckPoint is int idx
         ? idx + 1
-        : -1;
+        : 0;
 
-    public double FirstStuckPointPercent => _maxWeightPathAnalysis.FirstStuckPointPercent ?? -1;
+    public double FirstStuckPointPercent => _maxWeightPathAnalysis.FirstStuckPointPercent ?? 0;
 
     public double EmptyFriendly => NumberFriendlyCalculator.CalcFriendlyAverage(Board.GetAnswerNumbers());
 

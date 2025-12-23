@@ -236,9 +236,8 @@ Console.WriteLine("Hello, World!");
 
 // var level = "bb67fb04fb04fa6ffbfbfc11fb48fa5914fafafa784cfb0ffa5b0afbfb2720fb09fa2901fbfbfafbfb09fb03fa0c18fb3bfa53fafafafa302cfb38fa645e";
 // var layout = "0011111110000101000100001111101000010100010000101111101000000100011000111110110001010101111110111111000100010110001111101";
-
-var level = "bb00fc00fa00fcfb0000fb00fa00fafafe1700fd00fa00fa00fe00fa00fc00fa01fd00fa00261c0a0f12182a2201222a012a1c0e0e";
-var layout = "0011111000000100010000001011111000010001010000100011111000000001000000111110000001000000000010000000000100000011111000000";
+var level = "b900fb00fa00fbfbfc00fb00fa00fafafa0000fc00fa00fb000000fb00fa00fbfbfbfbfa06fb00fc00fa0000fafafafa000000fc00fa00:1819310e081626211b062504080d152226021b2b262e0f1f";
+var layout = "001111100001010100001111100001010100001011111000000001101011111101010101111111101101010100101011111";
 
 var borad = BoardDataCodec.Decode(level, layout);
 borad.PrettyPrint();
@@ -260,23 +259,33 @@ var levelEvaluator = LevelDifficultyEvaluator.Create()
     .WithLocalEvaluator(localEvaluator)
     .WithScoreStrategy(new DefaultScoreStrategy())
     .WithWeightCalculator(new ExponentialWeightCalculator())
-    .WithSelectionPolicy(new MaxWeightSelectionPolicy())
-    .WithTrace(maxWeightPathTrace)
+    .WithSelectionPolicy(new WeightedRandomSelectionPolicy())
+    // .WithTrace(maxWeightPathTrace)
     .Build();
 
-var holeCountType = HoleCountType.FormulaCountMinus1;
-var ctx = HollowOutContext.Create(
-    borad, holeCountType, 
-    HollowOutStrategyFactory.CreateStrategy(HollowOutStrategyType.NonFocusPriority), 
-    DefaultHoleValidator.Create());
-var holeDigger = new HoleDigger();
-Console.WriteLine("========");
-if (holeDigger.TryHollowOut2(ctx, out var resultBoard))
+var boardSolver = new BoardSolver();
+foreach (var solution in boardSolver.Solve(borad, ExpressionSolverProvider.CreateDefault()))
 {
-    resultBoard.PrettyPrint();
-    return 0;
-    
+    Console.WriteLine(String.Join(",", solution.solutionMap.Select(kv => $"({kv.Key.Row}, {kv.Key.Col}): {kv.Value}")));
 }
+
+levelEvaluator.EvaluateSingleRun(LevelDifficultyEvaluator.CreateContext(borad));
+
+
+// var holeCountType = HoleCountType.FormulaCountMinus1;
+// var ctx = HollowOutContext.Create(
+//     borad, holeCountType, 
+//     HollowOutStrategyFactory.CreateStrategy(HollowOutStrategyType.NonFocusPriority), 
+//     DefaultHoleValidator.Create());
+// var holeDigger = new HoleDigger();
+// Console.WriteLine("========");
+// if (holeDigger.TryHollowOut2(ctx, out var resultBoard))
+// {
+//     resultBoard.PrettyPrint();
+//     return 0;
+//     
+// }
+
 
 // resultBoard = borad;
 // resultBoard.PrettyPrint();
